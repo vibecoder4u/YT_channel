@@ -1,0 +1,59 @@
+{
+  "title": "The Lion's Territory: A Daily Patrol",
+  "voice": "en-US-GuyNeural",
+  "rate": "-2%",
+  "fps": 15,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.25,
+  "scenes": [
+    {
+      "heading": "A territory has boundaries",
+      "caption": "A lion's range is a living map",
+      "narration": "A lion's territory is more than a patch of land. It is a living map of water, shade, prey and safe resting places. Knowing this landscape can make the difference between survival and exhaustion.",
+      "animal_action": "walk",
+      "movement": "approach",
+      "water": false
+    },
+    {
+      "heading": "The patrol begins",
+      "caption": "Familiar paths are checked again and again",
+      "narration": "As the day begins, a male lion moves along familiar routes. He does not need to race. A steady patrol lets him inspect the edges of his range while conserving energy in the growing heat.",
+      "animal_action": "walk",
+      "movement": "approach",
+      "water": false
+    },
+    {
+      "heading": "Scent leaves a message",
+      "caption": "Scent marks communicate presence",
+      "narration": "At prominent trees and bushes, lions may rub their faces or leave scent marks. These chemical signals carry information to other lions, helping communicate who has been using the area.",
+      "animal_action": "lower",
+      "movement": "hold",
+      "water": false
+    },
+    {
+      "heading": "Listen before moving on",
+      "caption": "Sounds reveal activity beyond the grass",
+      "narration": "The lion pauses. A distant call, movement in the grass or the smell of another animal can change what happens next. A successful patrol depends as much on attention as on strength.",
+      "animal_action": "rest",
+      "movement": "hold",
+      "water": false
+    },
+    {
+      "heading": "Rivals test the boundary",
+      "caption": "Territory can bring costly conflict",
+      "narration": "Neighbouring lions may challenge the edges of a range. Roaring can advertise presence and help avoid a dangerous encounter, but if rivals meet, defending territory can demand energy and carry real risk.",
+      "animal_action": "walk",
+      "movement": "hold",
+      "water": false
+    },
+    {
+      "heading": "The route continues",
+      "caption": "Patrolling protects access to vital resources",
+      "narration": "The lion moves on through the grass, checking another familiar path. Territory is never permanently secure. By patrolling, marking and responding to rivals, lions help protect access to the resources their pride depends on.",
+      "animal_action": "walk",
+      "movement": "exit",
+      "water": false
+    }
+  ]
+}

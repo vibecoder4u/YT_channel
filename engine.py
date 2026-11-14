@@ -65,47 +65,119 @@ def arrow(draw, start, end, color, width=6):
 
 
 def draw_character(draw, action, x, y, t, scale=1.0, color=INK):
+    """Expressive articulated presenter with a readable silhouette and continuous motion."""
     s = scale
-    bob = math.sin(t * 4.5) * 4 * s
-    x, y = int(x), int(y + bob)
-    sw = max(4, int(8 * s))
-    r = int(31 * s)
-    hy = y - int(132 * s)
-    draw.ellipse((x-r, hy-r, x+r, hy+r), fill=(255,255,255), outline=color, width=sw)
-    draw.ellipse((x-int(10*s), hy-int(4*s), x-int(5*s), hy+int(2*s)), fill=color)
-    draw.ellipse((x+int(6*s), hy-int(4*s), x+int(11*s), hy+int(2*s)), fill=color)
-    draw.arc((x-int(12*s),hy+int(3*s),x+int(12*s),hy+int(19*s)), 5, 175, fill=color, width=max(2,sw//2))
-    shoulder=(x,y-int(70*s)); hip=(x+int(math.sin(t*1.7)*4*s),y)
-    stroke(draw, [(x,hy+r),shoulder,hip], color, sw)
-    # Natural breathing and blink keep long explanatory shots alive.
-    blink = (t % 4.7) < 0.13
-    if blink:
-        draw.line((x-int(13*s),hy,x-int(3*s),hy),fill=color,width=max(2,sw//2))
-        draw.line((x+int(3*s),hy,x+int(13*s),hy),fill=color,width=max(2,sw//2))
-    if action == "think":
-        arms=[(shoulder,(x-int(48*s),y-int(20*s))),(shoulder,(x+int(32*s),hy+int(14*s)))]
-    elif action == "point":
-        arms=[(shoulder,(x-int(45*s),y-int(18*s))),(shoulder,(x+int(105*s),y-int(100*s)))]
-    elif action == "celebrate":
-        arms=[(shoulder,(x-int(62*s),y-int(120*s))),(shoulder,(x+int(62*s),y-int(120*s)))]
-    elif action == "walk":
-        swing=math.sin(t*5)*28*s
-        arms=[(shoulder,(x-int(52*s),y-int(38*s)+int(swing))),(shoulder,(x+int(52*s),y-int(38*s)-int(swing)))]
-    elif action == "type":
-        arms=[(shoulder,(x-int(48*s),y-int(12*s))),(shoulder,(x+int(48*s),y-int(12*s)))]
+    bob = math.sin(t * 3.2) * 3.2 * s
+    sway = math.sin(t * 1.35) * 3.5 * s
+    x, y = int(x + sway), int(y + bob)
+    sw = max(3, int(7 * s))
+    skin = (248, 211, 177)
+    skin_shadow = (221, 164, 124)
+    shirt = (53, 116, 158)
+    shirt_light = (91, 157, 190)
+    trousers = (55, 69, 88)
+    shoe = (35, 43, 55)
+    head_r = int(33 * s)
+    head_x = x + int(math.sin(t * 1.35) * 2 * s)
+    head_y = y - int(151 * s) + int(math.sin(t * 2.1) * 1.8 * s)
+    # Ground shadow and softly outlined shoes establish contact with the scene.
+    draw.ellipse((x-int(67*s), y+int(94*s), x+int(67*s), y+int(105*s)), fill=(226,231,231))
+    # Head, ears, neck and hair.
+    draw.ellipse((head_x-int(39*s),head_y-int(34*s),head_x+int(39*s),head_y+int(38*s)),fill=skin_shadow)
+    draw.ellipse((head_x-int(36*s),head_y-int(37*s),head_x+int(36*s),head_y+int(34*s)),fill=skin,outline=color,width=max(2,sw//2))
+    draw.ellipse((head_x-int(39*s),head_y-int(8*s),head_x-int(31*s),head_y+int(8*s)),fill=skin,outline=color,width=max(1,sw//3))
+    draw.ellipse((head_x+int(31*s),head_y-int(8*s),head_x+int(39*s),head_y+int(8*s)),fill=skin,outline=color,width=max(1,sw//3))
+    # Hair cap and side locks.
+    draw.pieslice((head_x-int(37*s),head_y-int(43*s),head_x+int(37*s),head_y+int(20*s)),180,355,fill=(48,42,39))
+    for k in range(4):
+        hx=head_x+int((-23+k*14)*s)
+        draw.arc((hx-int(10*s),head_y-int(44*s),hx+int(10*s),head_y-int(25*s)),185,315,fill=(75,62,54),width=max(2,sw//3))
+    # Brows, expressive eyes, pupils, nose and talking mouth.
+    blink=(t % 4.1) < 0.12
+    eye_y=head_y-int(3*s)
+    for ex in (head_x-int(13*s),head_x+int(13*s)):
+        draw.arc((ex-int(8*s),eye_y-int(12*s),ex+int(8*s),eye_y-int(4*s)),190,345,fill=(65,48,42),width=max(2,sw//3))
+        if blink:
+            draw.line((ex-int(6*s),eye_y,ex+int(6*s),eye_y),fill=color,width=max(2,sw//2))
+        else:
+            draw.ellipse((ex-int(5*s),eye_y-int(5*s),ex+int(5*s),eye_y+int(6*s)),fill=(255,255,255))
+            draw.ellipse((ex-int(2*s),eye_y-int(2*s),ex+int(3*s),eye_y+int(4*s)),fill=(43,57,66))
+    draw.line((head_x,head_y+int(1*s),head_x-int(3*s),head_y+int(11*s),head_x+int(2*s),head_y+int(12*s)),fill=skin_shadow,width=max(1,sw//4))
+    mouth_open=(int(t*5.2)%4 in (0,1))
+    if mouth_open:
+        draw.ellipse((head_x-int(7*s),head_y+int(18*s),head_x+int(7*s),head_y+int(26*s)),fill=(115,55,56))
     else:
-        wave=math.sin(t*6)*12*s
-        arms=[(shoulder,(x-int(48*s),y-int(18*s))),(shoulder,(x+int(60*s),y-int(104*s)+int(wave)))]
-    for a,b in arms: stroke(draw,[a,b],color,sw)
-    if action == "walk":
-        swing=math.sin(t*5)*35*s
-        legs=[(hip,(x-int(42*s)+int(swing),y+int(76*s))),(hip,(x+int(42*s)-int(swing),y+int(76*s)))]
+        draw.arc((head_x-int(9*s),head_y+int(15*s),head_x+int(9*s),head_y+int(27*s)),5,175,fill=(125,65,63),width=max(2,sw//3))
+    # Neck and shirt torso, with collar, seams and buttons.
+    neck_top=head_y+int(32*s)
+    shoulder_y=y-int(91*s)
+    hip=(x+int(math.sin(t*1.4)*3*s),y-int(2*s))
+    draw.rounded_rectangle((x-int(12*s),neck_top,x+int(12*s),shoulder_y+int(10*s)),radius=int(5*s),fill=skin,outline=color,width=max(1,sw//3))
+    torso=[(x-int(22*s),shoulder_y),(x+int(22*s),shoulder_y),(hip[0]+int(24*s),hip[1]),(hip[0]-int(24*s),hip[1])]
+    draw.polygon(torso,fill=shirt)
+    draw.line(torso+[torso[0]],fill=color,width=max(2,sw//2),joint="curve")
+    draw.polygon([(x-int(12*s),shoulder_y+int(2*s)),(x,shoulder_y+int(18*s)),(x+int(12*s),shoulder_y+int(2*s))],fill=(239,243,239))
+    draw.line((x,shoulder_y+int(18*s),x,hip[1]-int(7*s)),fill=shirt_light,width=max(2,sw//3))
+    for by in (shoulder_y+int(30*s),shoulder_y+int(49*s)):
+        draw.ellipse((x-int(2*s),by-int(2*s),x+int(2*s),by+int(2*s)),fill=(230,235,230))
+    # Joint helper gives the arms and legs a clear articulated construction.
+    def joint(px,py,radius=5):
+        rr=max(3,int(radius*s))
+        draw.ellipse((px-rr,py-rr,px+rr,py+rr),fill=skin,outline=color,width=max(1,sw//3))
+    def hand(px,py,angle=0.0,open_hand=True):
+        palm=(int(px),int(py))
+        rr=max(4,int(7*s))
+        draw.ellipse((palm[0]-rr,palm[1]-rr,palm[0]+rr,palm[1]+rr),fill=skin,outline=color,width=max(1,sw//3))
+        if open_hand:
+            for fi in range(4):
+                a=angle+(fi-1.5)*0.19
+                ex=palm[0]+int(math.cos(a)*15*s)
+                ey=palm[1]+int(math.sin(a)*15*s)
+                draw.line((palm,(ex,ey)),fill=color,width=max(2,sw//3))
+                draw.ellipse((ex-2,ey-2,ex+2,ey+2),fill=skin)
+            tx=palm[0]+int(math.cos(angle+0.8)*10*s)
+            ty=palm[1]+int(math.sin(angle+0.8)*10*s)
+            draw.line((palm,(tx,ty)),fill=color,width=max(2,sw//3))
+    left_sh=(x-int(21*s),shoulder_y+int(5*s))
+    right_sh=(x+int(21*s),shoulder_y+int(5*s))
+    phase=math.sin(t*3.6)
+    if action=="think":
+        elbows=[(x-int(43*s),y-int(56*s)),(x+int(25*s),head_y+int(28*s))]
+        wrists=[(x-int(58*s),y-int(34*s)),(x+int(8*s),head_y+int(18*s))]
+    elif action=="point":
+        elbows=[(x-int(46*s),y-int(52*s)),(x+int(53*s),y-int(104*s)+int(phase*5*s))]
+        wrists=[(x-int(57*s),y-int(30*s)),(x+int(112*s),y-int(125*s)+int(phase*8*s))]
+    elif action=="celebrate":
+        elbows=[(x-int(48*s),y-int(117*s)),(x+int(48*s),y-int(117*s))]
+        wrists=[(x-int(70*s),y-int(143*s)),(x+int(70*s),y-int(143*s))]
+    elif action=="walk":
+        swing=math.sin(t*4.8)*25*s
+        elbows=[(x-int(43*s),y-int(52*s)+int(swing*.35)),(x+int(43*s),y-int(52*s)-int(swing*.35))]
+        wrists=[(x-int(50*s),y-int(22*s)+int(swing)),(x+int(50*s),y-int(22*s)-int(swing))]
+    elif action=="type":
+        elbows=[(x-int(42*s),y-int(46*s)),(x+int(42*s),y-int(46*s))]
+        wrists=[(x-int(48*s),y-int(17*s)+int(phase*3*s)),(x+int(48*s),y-int(17*s)-int(phase*3*s))]
     else:
-        legs=[(hip,(x-int(38*s),y+int(80*s))),(hip,(x+int(38*s),y+int(80*s)))]
-    for a,b in legs:
-        stroke(draw,[a,b],color,sw)
-        stroke(draw,[b,(b[0]+int(18*s),b[1])],color,sw)
-
+        wave=math.sin(t*5.4)*17*s
+        elbows=[(x-int(45*s),y-int(52*s)),(x+int(45*s),y-int(70*s)+int(wave*.45))]
+        wrists=[(x-int(56*s),y-int(24*s)),(x+int(67*s),y-int(112*s)+int(wave))]
+    for sh,el,wr in ((left_sh,elbows[0],wrists[0]),(right_sh,elbows[1],wrists[1])):
+        stroke(draw,[sh,el,wr],color,sw)
+        joint(*el,6)
+        hand(*wr,angle=-math.pi/2 if wr[1]<el[1] else math.pi/3,open_hand=(action not in ("type",)))
+    # Trouser legs with visible knees, moving stride and finished shoes.
+    if action=="walk":
+        stride=math.sin(t*4.8)*31*s
+        knees=[(x-int(22*s)+int(stride*.45),y+int(37*s)),(x+int(22*s)-int(stride*.45),y+int(37*s))]
+        ankles=[(x-int(34*s)+int(stride),y+int(82*s)),(x+int(34*s)-int(stride),y+int(82*s))]
+    else:
+        knees=[(x-int(23*s),y+int(38*s)),(x+int(23*s),y+int(38*s))]
+        ankles=[(x-int(34*s),y+int(83*s)),(x+int(34*s),y+int(83*s))]
+    for knee,ankle in zip(knees,ankles):
+        stroke(draw,[hip,knee,ankle],trousers,max(5,int(12*s)))
+        joint(*knee,5)
+        stroke(draw,[ankle,(ankle[0]+int(8*s),ankle[1]+int(5*s))],color,sw)
+        draw.rounded_rectangle((ankle[0]-int(15*s),ankle[1]+int(1*s),ankle[0]+int(20*s),ankle[1]+int(13*s)),radius=int(5*s),fill=shoe,outline=color,width=max(1,sw//3))
 
 def draw_flow(draw, items, x0, y, width, color, t):
     items = items[:5]

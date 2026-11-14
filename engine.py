@@ -272,6 +272,20 @@ def run(story_path, output):
         durations.append(probe_duration(path))
     total_audio=sum(durations)
     print(f"Narration duration: {total_audio/60:.2f} minutes")
+    # Add the same short reading beat to each audio segment that is reserved
+    # in its visual scene. This keeps every scene boundary synchronized.
+    reading_beat=float(story.get("reading_beat",0.35))
+    padded_dir=OUT/"padded_audio"
+    padded_dir.mkdir(exist_ok=True)
+    padded_audio=[]
+    for i,path in enumerate(audio_files):
+        padded=padded_dir/f"scene_{i:03}.mp3"
+        subprocess.run([
+            "ffmpeg","-y","-loglevel","error","-i",str(path),
+            "-af",f"apad=pad_dur={reading_beat}","-c:a","libmp3lame",str(padded)
+        ],check=True)
+        padded_audio.append(padded)
+    audio_files=padded_audio
     raw=OUT/"silent.mp4"
     cmd=["ffmpeg","-y","-loglevel","error","-f","rawvideo","-vcodec","rawvideo","-pix_fmt","rgb24","-s",f"{size[0]}x{size[1]}","-r",str(fps),"-i","-","-an","-c:v","libx264","-preset","veryfast","-pix_fmt","yuv420p",str(raw)]
     proc=subprocess.Popen(cmd,stdin=subprocess.PIPE)

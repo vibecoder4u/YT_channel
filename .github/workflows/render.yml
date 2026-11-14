@@ -9,7 +9,6 @@ on:
       - 'wildlife_diagram_render.py'
       - 'lion_render.py'
       - 'demo/lion_water_2min.json'
-      - 'demo/lion_water_2min.json'
       - 'tests/**'
       - '.github/workflows/render.yml'
   workflow_dispatch:
@@ -46,10 +45,10 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Render hand-drawn animated lion drinking at a desert waterhole
         run: |
-          python lion_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4"
+          python lion_render.py --script "${{ inputs.script || 'demo/lion_water_2min.json' }}" --output "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4"
       - name: Verify MP4 streams and documentary duration
         run: |
-          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4" | tee output/ffprobe.json
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4" | tee output/ffprobe.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -66,9 +65,9 @@ jobs:
       - name: Upload MP4 and QA reports
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output_name || 'forest-fox-documentary' }}
+          name: ${{ inputs.output_name || 'lion-water-documentary' }}
           path: |
-            output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4
+            output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error

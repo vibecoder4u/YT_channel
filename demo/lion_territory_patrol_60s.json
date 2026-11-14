@@ -2,7 +2,7 @@
   "title": "The Lion's Territory: A Daily Patrol",
   "voice": "en-US-GuyNeural",
   "rate": "-2%",
-  "fps": 15,
+  "fps": 24,
   "width": 1280,
   "height": 720,
   "reading_beat": 0.25,
@@ -56,5 +56,5 @@
       "water": false
     }
   ],
-  "production_note": "15fps prototype to reduce rendering load while retaining smooth illustrated motion."
+  "production_note": "24fps prototype for smoother illustrated character motion; FFmpeg and ffprobe are installed explicitly by the workflow."
 }

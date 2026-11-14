@@ -1,0 +1,35 @@
+name: Render Stickman Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'JSON script path'
+        required: true
+        default: 'demo/story.json'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Render MP4
+        run: python engine.py --script "${{ inputs.script }}" --output output/stickman-documentary.mp4
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: stickman-documentary
+          path: output/stickman-documentary.mp4
+          if-no-files-found: error
+          retention-days: 14

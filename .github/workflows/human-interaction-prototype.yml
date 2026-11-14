@@ -1,0 +1,66 @@
+name: Human Interaction Prototype - Rescue at the River
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human_render.py'
+      - 'demo/rescue_at_the_river_55s.json'
+      - '.github/workflows/human-interaction-prototype.yml'
+      - 'engine.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Compile human renderer
+        run: python -m py_compile human_render.py engine.py
+      - name: Validate story and interaction beats
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('demo/rescue_at_the_river_55s.json'))
+          assert len(s['scenes']) == 5
+          assert s['fps'] == 24
+          assert [x['human_action'] for x in s['scenes']] == ['arrive','plan','slip','rescue','resolve']
+          assert sum(x['duration'] for x in s['scenes']) >= 50
+          print('Story validated:',s['title'],'scenes=',len(s['scenes']),'fps=',s['fps'])
+          PY
+      - name: Render narrated human interaction story
+        run: python human_render.py --script demo/rescue_at_the_river_55s.json --output output/rescue-at-the-river-55s.mp4
+      - name: Verify MP4
+        run: |
+          mkdir -p output
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/rescue-at-the-river-55s.mp4 > output/ffprobe.json
+          python - <<'PY'
+          import json
+          d=json.load(open('output/ffprobe.json')); v=next(x for x in d['streams'] if x['codec_type']=='video'); a=next(x for x in d['streams'] if x['codec_type']=='audio'); seconds=float(d['format']['duration'])
+          assert seconds >= 50 and seconds <= 100, seconds
+          assert (v['codec_name'],v['width'],v['height'],v['r_frame_rate']) == ('h264',1280,720,'24/1'),v
+          assert a['codec_name']=='aac',a
+          print(f'PASS: {seconds:.1f}s, 1280x720, 24fps, H.264/AAC')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rescue-at-the-river-human-prototype
+          path: |
+            output/rescue-at-the-river-55s.mp4
+            output/ffprobe.json
+            output/render_report.json
+          if-no-files-found: error
+          retention-days: 14

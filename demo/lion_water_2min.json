@@ -1,0 +1,74 @@
+{
+  "title": "A Lion at the Waterhole: A Desert Survival Moment",
+  "voice": "en-US-GuyNeural",
+  "rate": "-5%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.35,
+  "scenes": [
+    {
+      "heading": "A dry landscape",
+      "caption": "In the heat, water draws every animal",
+      "takeaway": "A waterhole can be a lifeline",
+      "narration": "Across a dry savanna, the afternoon sun presses down on the grass and bare earth. For a lion, finding water is part of the daily rhythm of survival. A distant waterhole offers relief, but the journey across open ground takes energy and attention.",
+      "movement": "approach",
+      "animal_action": "approach",
+      "water": false
+    },
+    {
+      "heading": "The lion approaches",
+      "caption": "A powerful animal moves with measured steps",
+      "takeaway": "Even a large predator must conserve energy",
+      "narration": "The lion walks steadily toward the water. Its broad paws press into the dusty ground, while its tail moves gently behind. It does not need to hurry. In the heat, careful movement helps conserve energy, and the lion keeps its attention on the water ahead.",
+      "movement": "approach",
+      "animal_action": "walk",
+      "water": true
+    },
+    {
+      "heading": "Checking the water's edge",
+      "caption": "The lion pauses and looks down",
+      "takeaway": "A cautious pause comes before drinking",
+      "narration": "At the edge, the lion slows and pauses. It lowers its head to inspect the surface. Waterholes are shared places, visited by many species, so an animal may remain alert even while approaching a drink. The quiet surface begins to move as the lion comes closer.",
+      "movement": "hold",
+      "animal_action": "lower",
+      "water": true
+    },
+    {
+      "heading": "A long drink",
+      "caption": "The lion laps water with its tongue",
+      "takeaway": "Lapping brings water into the mouth",
+      "narration": "The lion begins to drink. Its tongue moves quickly, dipping into the water and drawing liquid into its mouth. Small ripples spread outward from the muzzle. The movement repeats in a steady rhythm as the animal takes in the water it needs.",
+      "movement": "hold",
+      "animal_action": "drink",
+      "water": true
+    },
+    {
+      "heading": "Ripples across the pool",
+      "caption": "Each lap sends rings across the surface",
+      "takeaway": "Small movements change the water around it",
+      "narration": "Look closely at the surface. Each movement of the tongue and muzzle disturbs the pool, sending ripples across the water. The lion pauses briefly between laps, then drinks again. Around the waterhole, the dry landscape seems to hold still in the heat.",
+      "movement": "hold",
+      "animal_action": "drink",
+      "water": true
+    },
+    {
+      "heading": "Lifting its head",
+      "caption": "The lion pauses after drinking",
+      "takeaway": "A drink offers a moment of relief",
+      "narration": "After drinking, the lion slowly lifts its head. A few drops fall from its muzzle, and it looks across the open ground. It has taken a moment to meet a basic need, but the surrounding savanna remains demanding. Water is precious in a dry environment.",
+      "movement": "hold",
+      "animal_action": "lift",
+      "water": true
+    },
+    {
+      "heading": "Life around the waterhole",
+      "caption": "One pool supports many lives",
+      "takeaway": "Waterholes connect the lives of savanna animals",
+      "narration": "The lion is only one visitor to this place. Herbivores, birds and smaller animals also depend on water. A waterhole is more than a drink: it is a meeting point in the landscape, linking the survival of many species. As the lion moves away, the ripples slowly fade.",
+      "movement": "exit",
+      "animal_action": "walk",
+      "water": true
+    }
+  ]
+}

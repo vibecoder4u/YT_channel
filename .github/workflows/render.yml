@@ -1,4 +1,4 @@
-name: Render Stickman Video
+name: Render Educational Stickman Video
 
 on:
   workflow_dispatch:
@@ -6,7 +6,11 @@ on:
       script:
         description: 'JSON script path'
         required: true
-        default: 'demo/story.json'
+        default: 'demo/story_5min.json'
+      output_name:
+        description: 'MP4 file name (without extension)'
+        required: true
+        default: 'educational-5min'
 
 permissions:
   contents: read
@@ -14,22 +18,45 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Render MP4
-        run: python engine.py --script "${{ inputs.script }}" --output output/stickman-documentary.mp4
-      - name: Upload MP4
+      - name: Run animation regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate script and render MP4
+        run: |
+          python engine.py --script "${{ inputs.script }}" --output "output/${{ inputs.output_name }}.mp4"
+      - name: Verify MP4 streams and duration
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name }}.mp4" | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/render_report.json").read_text())
+          probe = json.loads(Path("output/ffprobe.json").read_text())
+          streams = probe["streams"]
+          assert any(s["codec_type"] == "video" and s["codec_name"] == "h264" for s in streams), streams
+          assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
+          assert report["video_seconds"] >= 240, report
+          print("Verified long-form MP4:", report)
+          PY
+      - name: Upload rendered video and QA report
         uses: actions/upload-artifact@v4
         with:
-          name: stickman-documentary
-          path: output/stickman-documentary.mp4
+          name: ${{ inputs.output_name }}
+          path: |
+            output/${{ inputs.output_name }}.mp4
+            output/render_report.json
+            output/ffprobe.json
           if-no-files-found: error
           retention-days: 14

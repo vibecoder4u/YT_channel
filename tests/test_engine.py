@@ -37,6 +37,28 @@ class EducationalEngineTests(unittest.TestCase):
         later = engine.make_frame(scene, 360, 720, (1280, 720), 1, 1, "Animation test")
         self.assertNotEqual(first.tobytes(), later.tobytes())
 
+    def test_stickman_is_line_art_not_a_filled_torso(self):
+        image = engine.Image.new("RGB", (640, 480), engine.BG)
+        draw = engine.ImageDraw.Draw(image)
+        engine.draw_character(draw, "explain", 300, 350, 1.0, 1.0)
+        # The torso centreline is ink, while the adjacent body area remains empty.
+        self.assertNotEqual(image.getpixel((300, 290)), engine.BG)
+        self.assertEqual(image.getpixel((315, 290)), engine.BG)
+
+    def test_caption_cues_use_word_boundary_times(self):
+        boundaries = [
+            {"text": "Packets", "start": 0.2, "duration": 0.3},
+            {"text": "move", "start": 0.55, "duration": 0.2},
+            {"text": "quickly.", "start": 0.8, "duration": 0.35},
+            {"text": "across", "start": 1.3, "duration": 0.2},
+            {"text": "networks.", "start": 1.55, "duration": 0.3},
+        ]
+        cues = engine.build_caption_cues(boundaries, "unused fallback", 3.0)
+        self.assertEqual(cues[0]["text"], "Packets move quickly.")
+        self.assertAlmostEqual(cues[0]["start"], 0.2)
+        self.assertAlmostEqual(cues[0]["end"], 1.15)
+        self.assertEqual(cues[1]["text"], "across networks.")
+
     def test_invalid_empty_story_is_rejected(self):
         with self.assertRaises(ValueError):
             engine.validate_story({"scenes": []})

@@ -6,6 +6,8 @@ on:
     paths:
       - 'engine.py'
       - 'demo/story_5min.json'
+      - 'demo/story_thunderstorm_5min.json'
+      - 'requirements.txt'
       - 'tests/test_engine.py'
       - '.github/workflows/educational-stickman.yml'
   workflow_dispatch:
@@ -13,11 +15,11 @@ on:
       script:
         description: 'Educational JSON script'
         required: true
-        default: 'demo/story_5min.json'
+        default: 'demo/story_thunderstorm_5min.json'
       output_name:
         description: 'MP4 artifact name'
         required: true
-        default: 'internet-stickman-documentary'
+        default: 'thunderstorm-colour-svg-documentary'
 
 permissions:
   contents: read
@@ -42,7 +44,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Render long-form stickman documentary
         run: |
-          python engine.py --script "${{ inputs.script || 'demo/story_5min.json' }}" --output "output/${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4"
+          python engine.py --script "${{ inputs.script || 'demo/story_thunderstorm_5min.json' }}" --output "output/${{ inputs.output_name || 'thunderstorm-colour-svg-documentary' }}.mp4"
       - name: Verify long-form MP4, audio, stickman style and captions
         run: |
           VIDEO="output/${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4"
@@ -61,6 +63,8 @@ jobs:
           assert report["presenter_style"] == "thin_line_art_stickman", report
           assert report["caption_cues"] >= 40, report
           assert report["caption_timing"] == "edge_tts_word_boundaries", report
+          assert report["diagram_renderer"] == "solid_colour_svg", report
+          assert report["svg_diagrams"] >= 15, report
           print("Verified long-form animated stickman documentary:", report)
           PY
       - name: Upload documentary and QA reports

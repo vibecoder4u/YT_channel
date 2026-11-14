@@ -287,12 +287,13 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
     # one frozen pose for the entire narration paragraph.
     if action == "explain":
         action = ("explain","point","think","explain")[int(t/3.8)%4]
-    draw_character(d,action,int(w*.19),int(h*.80),t,1.0)
-    # takeaway strip
+    # Takeaway panel is painted first; the presenter sits in front of it,
+    # so the character's legs and shoes are never hidden by the lower-third.
     rounded(d,(int(w*.055),int(h*.76),int(w*.94),int(h*.94)),20,(255,255,255),(226,231,234),2)
     takeaway=scene.get("takeaway",scene.get("caption",""))
     for i,txt in enumerate(wrap(takeaway,76)[:2]):
         d.text((int(w*.50),int(h*.815)+i*34),txt,font=font(22,True),fill=INK,anchor="mm")
+    draw_character(d,action,int(w*.19),int(h*.78),t,1.08)
     # continuous chapter progress
     prog=((scene_number-1)+frame/max(1,frames))/max(1,scene_count)
     d.rounded_rectangle((int(w*.055),int(h*.965),int(w*.94),int(h*.978)),radius=6,fill=(222,227,225))

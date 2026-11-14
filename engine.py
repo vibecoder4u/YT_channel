@@ -77,6 +77,11 @@ def draw_character(draw, action, x, y, t, scale=1.0, color=INK):
     draw.arc((x-int(12*s),hy+int(3*s),x+int(12*s),hy+int(19*s)), 5, 175, fill=color, width=max(2,sw//2))
     shoulder=(x,y-int(70*s)); hip=(x+int(math.sin(t*1.7)*4*s),y)
     stroke(draw, [(x,hy+r),shoulder,hip], color, sw)
+    # Natural breathing and blink keep long explanatory shots alive.
+    blink = (t % 4.7) < 0.13
+    if blink:
+        draw.line((x-int(13*s),hy,x-int(3*s),hy),fill=color,width=max(2,sw//2))
+        draw.line((x+int(3*s),hy,x+int(13*s),hy),fill=color,width=max(2,sw//2))
     if action == "think":
         arms=[(shoulder,(x-int(48*s),y-int(20*s))),(shoulder,(x+int(32*s),hy+int(14*s)))]
     elif action == "point":
@@ -111,16 +116,19 @@ def draw_flow(draw, items, x0, y, width, color, t):
     x = x0 + (width-total)//2
     for i, label in enumerate(items):
         cx=x+boxw//2
-        rounded(draw,(x,y-43,x+boxw,y+43),16,(255,255,255),color,3)
+        active = (int(t * 0.85) % len(items)) == i
+        rounded(draw,(x,y-43,x+boxw,y+43),16,(235,247,244) if active else (255,255,255),color if active else (205,215,218),4 if active else 2)
         lines=wrap(label,15)[:2]
         for j,txt in enumerate(lines):
             draw.text((cx,y+(j-(len(lines)-1)/2)*25),txt,font=font(18,True),fill=INK,anchor="mm")
         if i < len(items)-1:
             arrow(draw,(x+boxw+3,y),(x+boxw+gap-3,y),color,4)
+        if active:
+            draw.ellipse((cx-7,y+54,cx+7,y+68),fill=color)
         x += boxw+gap
 
 
-def draw_timeline(draw, items, x0, y, width, color):
+def draw_timeline(draw, items, x0, y, width, color, t):
     items=items[:5]
     if not items: return
     left=x0+35; right=x0+width-35
@@ -142,7 +150,7 @@ def draw_visual(draw, scene, t, w, h, color):
     if kind in ("flow","process"):
         draw_flow(draw,scene.get("items",[]),x0+12,(y0+y1)//2,x1-x0-24,color,t)
     elif kind=="timeline":
-        draw_timeline(draw,scene.get("items",[]),x0+8,(y0+y1)//2,x1-x0-16,color)
+        draw_timeline(draw,scene.get("items",[]),x0+8,(y0+y1)//2,x1-x0-16,color,t)
     elif kind=="compare":
         cols=scene.get("items",["Before","After"])[:2]
         for i,label in enumerate(cols):
@@ -167,9 +175,11 @@ def draw_visual(draw, scene, t, w, h, color):
         labels=scene.get("items",["A","B","C","D"])[:len(vals)]
         base=y1-65; maxv=max(vals) or 1
         bw=min(68,(x1-x0-70)//max(1,len(vals)))
+        reveal=min(1.0,max(0.0,t/2.5))
         for i,v in enumerate(vals):
             xx=x0+48+i*(bw+22)
-            bh=int((y1-y0-145)*v/maxv)
+            stagger=max(0.0,min(1.0,(t-i*0.32)/1.1))
+            bh=int((y1-y0-145)*v/maxv*min(reveal,stagger))
             rounded(draw,(xx,base-bh,xx+bw,base),10,color)
             draw.text((xx+bw//2,base+22),labels[i] if i<len(labels) else str(i+1),font=font(15,True),fill=INK,anchor="mm")
     elif kind=="network":
@@ -197,6 +207,10 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
     t=frame/max(1,frames-1)*float(scene.get("duration",5))
     draw_visual(d,scene,t,w,h,color)
     action=scene.get("action","explain")
+    # Educational presenter changes gesture periodically rather than holding
+    # one frozen pose for the entire narration paragraph.
+    if action == "explain":
+        action = ("explain","point","think","explain")[int(t/3.8)%4]
     draw_character(d,action,int(w*.19),int(h*.80),t,1.0)
     # takeaway strip
     rounded(d,(int(w*.055),int(h*.76),int(w*.94),int(h*.94)),20,(255,255,255),(226,231,234),2)

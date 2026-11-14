@@ -47,7 +47,7 @@ jobs:
           python engine.py --script "${{ inputs.script || 'demo/story_thunderstorm_5min.json' }}" --output "output/${{ inputs.output_name || 'thunderstorm-colour-svg-documentary' }}.mp4"
       - name: Verify long-form MP4, audio, stickman style and captions
         run: |
-          VIDEO="output/${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4"
+          VIDEO="output/${{ inputs.output_name || 'thunderstorm-colour-svg-documentary' }}.mp4"
           ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "$VIDEO" | tee output/ffprobe.json
           python - <<'PY'
           import json
@@ -70,9 +70,9 @@ jobs:
       - name: Upload documentary and QA reports
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output_name || 'internet-stickman-documentary' }}
+          name: ${{ inputs.output_name || 'thunderstorm-colour-svg-documentary' }}
           path: |
-            output/${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4
+            output/${{ inputs.output_name || 'thunderstorm-colour-svg-documentary' }}.mp4
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error

@@ -19,7 +19,7 @@
       "heading": "The patrol begins",
       "caption": "Familiar paths are checked again and again",
       "narration": "As the day begins, a male lion moves along familiar routes. He does not need to race. A steady patrol lets him inspect the edges of his range while conserving energy in the growing heat.",
-      "animal_action": "walk",
+      "animal_action": "patrol",
       "movement": "approach",
       "water": false
     },
@@ -27,7 +27,7 @@
       "heading": "Scent leaves a message",
       "caption": "Scent marks communicate presence",
       "narration": "At prominent trees and bushes, lions may rub their faces or leave scent marks. These chemical signals carry information to other lions, helping communicate who has been using the area.",
-      "animal_action": "lower",
+      "animal_action": "mark",
       "movement": "hold",
       "water": false
     },
@@ -35,7 +35,7 @@
       "heading": "Listen before moving on",
       "caption": "Sounds reveal activity beyond the grass",
       "narration": "The lion pauses. A distant call, movement in the grass or the smell of another animal can change what happens next. A successful patrol depends as much on attention as on strength.",
-      "animal_action": "rest",
+      "animal_action": "listen",
       "movement": "hold",
       "water": false
     },
@@ -43,7 +43,7 @@
       "heading": "Rivals test the boundary",
       "caption": "Territory can bring costly conflict",
       "narration": "Neighbouring lions may challenge the edges of a range. Roaring can advertise presence and help avoid a dangerous encounter, but if rivals meet, defending territory can demand energy and carry real risk.",
-      "animal_action": "walk",
+      "animal_action": "roar",
       "movement": "hold",
       "water": false
     },
@@ -51,10 +51,10 @@
       "heading": "The route continues",
       "caption": "Patrolling protects access to vital resources",
       "narration": "The lion moves on through the grass, checking another familiar path. Territory is never permanently secure. By patrolling, marking and responding to rivals, lions help protect access to the resources their pride depends on.",
-      "animal_action": "walk",
+      "animal_action": "patrol",
       "movement": "exit",
       "water": false
     }
   ],
-  "production_note": "24fps prototype for smoother illustrated character motion; FFmpeg and ffprobe are installed explicitly by the workflow."
+  "production_note": "New scene blocking: wide establishing patrol, landmark walk, scent-marking at an acacia, listening beat with sound cues, rival-boundary roar, and departure through foreground grass. Distinct scene compositions and character actions; 24fps."
 }

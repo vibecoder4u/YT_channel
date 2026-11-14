@@ -1,0 +1,49 @@
+name: Rigged Fox Animation Test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fox_rig_test.py'
+      - '.github/workflows/fox-rig-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install render dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          pip install Pillow CairoSVG
+      - name: Render 12-second rig animation
+        run: python fox_rig_test.py --seconds 12 --output output/fox-rig-test.mp4
+      - name: Verify video and motion duration
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/fox-rig-test.mp4 | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          d=json.load(open("output/ffprobe.json"))
+          s=d["streams"]
+          v=next(x for x in s if x["codec_type"]=="video")
+          duration=float(d["format"]["duration"])
+          assert v["codec_name"]=="h264" and v["width"]==1280 and v["height"]==720, v
+          assert 10 <= duration <= 15, duration
+          assert v["r_frame_rate"]=="24/1", v
+          print("PASS:",duration,"seconds",v["width"],"x",v["height"],v["r_frame_rate"])
+          PY
+      - name: Upload fox rig test
+        uses: actions/upload-artifact@v4
+        with:
+          name: fox-rig-test
+          path: |
+            output/fox-rig-test.mp4
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 14

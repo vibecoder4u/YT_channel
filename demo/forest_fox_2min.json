@@ -12,70 +12,63 @@
       "caption": "A quiet woodland is full of hidden life",
       "takeaway": "The forest changes with every hour",
       "narration": "As the first light reaches the woodland, the forest begins to stir. Leaves move in the breeze, birds call from the canopy, and small animals leave the shelter of their resting places. One of the forest's most adaptable hunters is preparing for another day: the red fox.",
-      "environment_label": "WOODLAND • FIRST LIGHT",
-      "movement": "enter",
-      "animal_action": "walk",
-      "duration": 1
+      "diagram": "habitat",
+      "visual_title": "A LIVING WOODLAND",
+      "visual_subtitle": "Layers of trees, ground cover and hidden pathways"
     },
     {
       "heading": "Meet the red fox",
       "caption": "Alert ears help the fox notice its surroundings",
       "takeaway": "A fox relies on sharp senses and careful movement",
       "narration": "The red fox is known for its russet coat, pointed ears, narrow muzzle and bushy tail. Its ears can turn toward faint sounds, while its eyes and nose help it investigate the world. The thick tail helps with balance and can curl around the body like a warm blanket when the fox rests.",
-      "environment_label": "THE RED FOX",
-      "movement": "hold",
-      "animal_action": "look",
-      "duration": 1
+      "diagram": "senses",
+      "visual_title": "SENSES BUILT FOR SURVIVAL",
+      "visual_subtitle": "Sound, sight and smell help the fox read its surroundings"
     },
     {
       "heading": "Every sound is a clue",
       "caption": "The fox pauses, listens and looks around",
       "takeaway": "Listening can reveal prey hidden beneath leaves",
       "narration": "Moving through the undergrowth, the fox slows down. It pauses, lifts its head and listens. A tiny rustle may come from an insect, a bird, or a small mammal moving beneath fallen leaves. Rather than rushing, the fox uses patience to work out where the sound came from.",
-      "environment_label": "LISTENING IN THE UNDERGROWTH",
-      "movement": "walk",
-      "animal_action": "look",
-      "duration": 1
+      "diagram": "senses",
+      "visual_title": "LISTEN • LOCATE • RESPOND",
+      "visual_subtitle": "Expanding sound waves show how a faint clue travels"
     },
     {
       "heading": "Following a scent",
       "caption": "The fox investigates tracks and smells on the ground",
       "takeaway": "Scent helps foxes explore and find food",
       "narration": "At the forest floor, scents tell another story. The fox lowers its nose and sniffs along the ground. It may be following the trail of a mouse, checking a familiar path, or investigating where another animal has passed. Smell is an important part of how foxes explore and communicate.",
-      "environment_label": "SCENT TRAILS",
-      "movement": "hold",
-      "animal_action": "sniff",
-      "duration": 1
+      "diagram": "scent",
+      "visual_title": "A TRAIL YOU CANNOT SEE",
+      "visual_subtitle": "A moving scent path connects clues across the forest floor"
     },
     {
       "heading": "A careful hunter",
       "caption": "A fox moves quietly before making a quick pounce",
       "takeaway": "Stealth and timing matter more than speed alone",
       "narration": "When prey is nearby, the fox becomes still and focused. It listens for movement under grass or snow, then may spring forward in a sudden pounce. Small mammals are common food, but foxes are opportunistic and also eat insects, fruit, birds and other available food. Their varied diet helps them survive in changing habitats.",
-      "environment_label": "THE HUNT",
-      "movement": "walk",
-      "animal_action": "trot",
-      "duration": 1
+      "diagram": "hunt",
+      "visual_title": "THE HUNT IS A SEQUENCE",
+      "visual_subtitle": "Listen first, focus carefully, then make a fast move"
     },
     {
       "heading": "Life beyond the hunt",
       "caption": "Foxes also rest, play and raise their young",
       "takeaway": "A fox is part of a much larger woodland community",
       "narration": "A fox's day is not only about finding food. It rests in sheltered places, explores its territory and raises its young in a den. Foxes share the forest with deer, owls, insects, fungi and countless plants. Each species has its own role, and the health of one can affect many others.",
-      "environment_label": "WOODLAND NEIGHBOURS",
-      "movement": "hold",
-      "animal_action": "look",
-      "duration": 1
+      "diagram": "web",
+      "visual_title": "A CONNECTED FOOD WEB",
+      "visual_subtitle": "Plants, insects, birds, small mammals and predators are linked"
     },
     {
       "heading": "A home worth protecting",
       "caption": "Healthy forests provide food, shelter and safe pathways",
       "takeaway": "Protecting habitats helps wildlife thrive",
       "narration": "As daylight fades, the fox slips deeper into the trees. Its survival depends on connected habitat, places to shelter and enough food. Protecting forests means protecting the many lives woven through them. In a healthy woodland, even a quiet rustle in the leaves can be the beginning of another remarkable story.",
-      "environment_label": "DUSK • THE FOREST CONTINUES",
-      "movement": "exit",
-      "animal_action": "walk",
-      "duration": 1
+      "diagram": "protect",
+      "visual_title": "KEEP HABITATS CONNECTED",
+      "visual_subtitle": "Safe corridors let wildlife find food, shelter and mates"
     }
   ]
 }

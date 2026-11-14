@@ -47,7 +47,7 @@ jobs:
           streams = probe["streams"]
           assert any(s["codec_type"] == "video" and s["codec_name"] == "h264" for s in streams), streams
           assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
-          assert report["video_seconds"] >= 240, report
+          assert report["video_seconds"] >= 270, report
           print("Verified long-form MP4:", report)
           PY
       - name: Upload rendered video and QA report

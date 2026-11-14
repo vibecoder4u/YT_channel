@@ -1,0 +1,75 @@
+name: Render 5-Minute Animated Stickman Documentary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'engine.py'
+      - 'demo/story_5min.json'
+      - 'tests/test_engine.py'
+      - '.github/workflows/educational-stickman.yml'
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Educational JSON script'
+        required: true
+        default: 'demo/story_5min.json'
+      output_name:
+        description: 'MP4 artifact name'
+        required: true
+        default: 'internet-stickman-documentary'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Run renderer and animation regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Render long-form stickman documentary
+        run: |
+          python engine.py --script "\${{ inputs.script || 'demo/story_5min.json' }}" --output "output/\${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4"
+      - name: Verify long-form MP4, audio, stickman style and captions
+        run: |
+          VIDEO="output/\${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4"
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "$VIDEO" | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/render_report.json").read_text())
+          probe = json.loads(Path("output/ffprobe.json").read_text())
+          streams = probe["streams"]
+          assert any(s["codec_type"] == "video" and s["codec_name"] == "h264" for s in streams), streams
+          assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
+          assert report["video_seconds"] >= 180, report
+          assert report["video_seconds"] <= 600, report
+          assert report["resolution"] == "1280x720", report
+          assert report["presenter_style"] == "thin_line_art_stickman", report
+          assert report["caption_cues"] >= 40, report
+          assert report["caption_timing"] == "edge_tts_word_boundaries", report
+          print("Verified long-form animated stickman documentary:", report)
+          PY
+      - name: Upload documentary and QA reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: \${{ inputs.output_name || 'internet-stickman-documentary' }}
+          path: |
+            output/\${{ inputs.output_name || 'internet-stickman-documentary' }}.mp4
+            output/render_report.json
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 14

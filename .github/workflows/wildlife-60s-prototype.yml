@@ -1,4 +1,4 @@
-name: 60-Second Illustrated Wildlife Prototype (15 FPS)
+name: 60-Second Illustrated Wildlife Prototype (24 FPS)
 
 on:
   push:
@@ -23,8 +23,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - name: Verify preinstalled FFmpeg
-        run: ffmpeg -version | head -n 2
+      - name: Install FFmpeg and ffprobe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version | head -n 2
+          ffprobe -version | head -n 2
       - name: Install renderer dependencies
         run: pip install -r requirements.txt
       - name: Compile the character renderer
@@ -37,7 +41,7 @@ jobs:
           p = Path("demo/lion_territory_patrol_60s.json")
           story = json.loads(p.read_text())
           assert len(story["scenes"]) == 6
-          assert story["fps"] == 15
+          assert story["fps"] == 24
           assert all(len(s["narration"].split()) >= 20 for s in story["scenes"])
           assert len({s["heading"] for s in story["scenes"]}) == 6
           print("Script OK:", story["title"], "| scenes:", len(story["scenes"]), "| fps:", story["fps"])
@@ -58,14 +62,14 @@ jobs:
           assert seconds >= 60, f"Video is shorter than 60 seconds: {seconds:.2f}"
           assert seconds <= 110, f"Unexpectedly long prototype: {seconds:.2f}"
           assert v["codec_name"] == "h264" and v["width"] == 1280 and v["height"] == 720, v
-          assert v["r_frame_rate"] == "15/1", v
+          assert v["r_frame_rate"] == "24/1", v
           assert a["codec_name"] == "aac", a
-          print(f"PASS: {seconds:.2f}s | 1280x720 | 15fps | H.264 + AAC")
+          print(f"PASS: {seconds:.2f}s | 1280x720 | 24fps | H.264 + AAC")
           PY
       - name: Upload prototype video and QA reports
         uses: actions/upload-artifact@v4
         with:
-          name: lion-territory-patrol-60s-15fps
+          name: lion-territory-patrol-60s-24fps
           path: |
             output/lion-territory-patrol-60s.mp4
             output/render_report.json

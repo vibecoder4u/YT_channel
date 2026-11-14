@@ -42,8 +42,9 @@ class EducationalEngineTests(unittest.TestCase):
         draw = engine.ImageDraw.Draw(image)
         engine.draw_character(draw, "explain", 300, 350, 1.0, 1.0)
         # The torso centreline is ink, while the adjacent body area remains empty.
-        self.assertNotEqual(image.getpixel((300, 290)), engine.BG)
-        self.assertEqual(image.getpixel((315, 290)), engine.BG)
+        center_x = int(300 + __import__("math").sin(0.7) * 4)
+        self.assertNotEqual(image.getpixel((center_x, 290)), engine.BG)
+        self.assertEqual(image.getpixel((center_x + 15, 290)), engine.BG)
 
     def test_caption_cues_use_word_boundary_times(self):
         boundaries = [

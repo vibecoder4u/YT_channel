@@ -140,6 +140,10 @@ def draw_timeline(draw, items, x0, y, width, color, t):
         yy=y+35 if i%2==0 else y-58
         for j,txt in enumerate(lines):
             draw.text((x,yy+j*22),txt,font=font(16,True),fill=INK,anchor="mm")
+    # A moving marker makes the timeline feel like an unfolding explanation.
+    progress=(t*0.12)%1.0
+    marker_x=left+(right-left)*progress
+    draw.ellipse((marker_x-10,y-10,marker_x+10,y+10),fill=(255,255,255),outline=INK,width=3)
 
 
 def draw_visual(draw, scene, t, w, h, color):

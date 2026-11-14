@@ -1,0 +1,52 @@
+{
+  "title": "The Rescue at the River",
+  "voice": "en-US-GuyNeural",
+  "rate": "+0%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.2,
+  "production_note": "Three-character interaction test: shared attention, coordinated rescue, rope handoff and group departure.",
+  "scenes": [
+    {
+      "heading": "A Team Reaches the River",
+      "caption": "Three explorers arrive at a fast-moving river.",
+      "duration": 8,
+      "narration": "Maya, Arun and Leena have been exploring the forest together. Their route ends at a wide river, where the water moves quickly over slippery stones.",
+      "movement": "walk",
+      "human_action": "arrive"
+    },
+    {
+      "heading": "Choosing a Safe Crossing",
+      "caption": "They study the stones and discuss another route.",
+      "duration": 9,
+      "narration": "Maya points toward a line of stepping stones. Arun crouches to inspect the water, but Leena spots a fallen tree that offers a safer way across.",
+      "movement": "talk",
+      "human_action": "plan"
+    },
+    {
+      "heading": "A Sudden Slip",
+      "caption": "Arun loses his footing on the wet rock.",
+      "duration": 10,
+      "narration": "Before they can change direction, Arun steps onto a wet rock. His foot slides, his arms fly outward, and he reaches for help as Maya turns toward him.",
+      "movement": "slip",
+      "human_action": "slip"
+    },
+    {
+      "heading": "Working Together",
+      "caption": "Leena throws a rope. Maya helps pull Arun to safety.",
+      "duration": 16,
+      "narration": "Leena quickly takes a rope from her pack and throws one end. Maya catches it and passes it to Arun. They brace their feet and pull together until he reaches the riverbank.",
+      "movement": "rescue",
+      "human_action": "rescue"
+    },
+    {
+      "heading": "Back on Solid Ground",
+      "caption": "The three friends regroup and continue together.",
+      "duration": 12,
+      "narration": "Arun catches his breath. Maya offers her hand and helps him stand. Leena points toward the safer route. They have learned that the best way forward is often together.",
+      "movement": "walk",
+      "human_action": "resolve"
+    }
+  ]
+}

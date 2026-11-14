@@ -14,7 +14,7 @@
       "narration": "Open a website on your phone. You tap its name, and a page appears. Behind that simple moment, your device starts a journey: it finds the website, contacts a server, requests information, and brings the answer back.",
       "visual": "concept",
       "visual_title": "Tap a name. Start a journey.",
-      "action": "explain",
+      "action": "walk",
       "accent": "#2AA391",
       "duration": 1
     },
@@ -29,7 +29,7 @@
         "Wi-Fi router",
         "Internet provider"
       ],
-      "action": "explain",
+      "action": "demonstrate",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -75,7 +75,7 @@
         "DNS records",
         "IP address"
       ],
-      "action": "explain",
+      "action": "walk",
       "accent": "#2AA391",
       "duration": 1
     },
@@ -91,7 +91,7 @@
         "Packet B",
         "Packet C"
       ],
-      "action": "explain",
+      "action": "demonstrate",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -123,7 +123,7 @@
         "Regional network",
         "Data center"
       ],
-      "action": "explain",
+      "action": "walk",
       "accent": "#F4B43E",
       "duration": 1
     },
@@ -154,7 +154,7 @@
         "Certificate check",
         "Secure session"
       ],
-      "action": "explain",
+      "action": "demonstrate",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -181,7 +181,7 @@
         "Database",
         "Response"
       ],
-      "action": "think",
+      "action": "type",
       "accent": "#F4B43E",
       "duration": 1
     },
@@ -197,7 +197,7 @@
         "Home router",
         "Your device"
       ],
-      "action": "explain",
+      "action": "walk",
       "accent": "#2AA391",
       "duration": 1
     },
@@ -213,7 +213,7 @@
         "JavaScript",
         "Rendered page"
       ],
-      "action": "explain",
+      "action": "demonstrate",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -264,5 +264,7 @@
       "accent": "#2AA391",
       "duration": 1
     }
-  ]
+  ],
+  "presenter_style": "thin_line_art_stickman",
+  "caption_mode": "edge_tts_word_boundaries"
 }

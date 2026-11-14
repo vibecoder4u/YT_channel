@@ -51,7 +51,7 @@ def draw_character(im, name, action, accent, t, x, y, scale=1.0):
     line(d, [neck, shoulder, hip], INK, sw)
     # arms animate by named action
     if action == "wave":
-        arms = [(shoulder, (x-int(48*scale), y-int(30*scale))), (shoulder, (x+int(65*scale), y-int(120*scale)+int(math.sin(t*7)*12*scale))]
+        arms = [(shoulder, (x-int(48*scale), y-int(30*scale))), (shoulder, (x+int(65*scale), y-int(120*scale)+int(math.sin(t*7)*12*scale)))]
     elif action == "think":
         arms = [(shoulder, (x-int(48*scale), y-int(25*scale))), (shoulder, (x+int(40*scale), head_y+int(12*scale)))]
     elif action == "type":

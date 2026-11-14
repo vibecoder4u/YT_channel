@@ -1,0 +1,72 @@
+name: 60-Second Illustrated Wildlife Prototype
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lion_render.py'
+      - 'engine.py'
+      - 'demo/lion_dry_season_60s.json'
+      - '.github/workflows/wildlife-60s-prototype.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install renderer dependencies
+        run: pip install -r requirements.txt
+      - name: Validate the new six-scene script
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("demo/lion_dry_season_60s.json")
+          story = json.loads(p.read_text())
+          assert len(story["scenes"]) == 6
+          assert all(len(s["narration"].split()) >= 20 for s in story["scenes"])
+          assert len({s["heading"] for s in story["scenes"]}) == 6
+          print("Script OK:", story["title"], "| scenes:", len(story["scenes"]))
+          PY
+      - name: Render narrated 60-second-plus prototype
+        run: python lion_render.py --script demo/lion_dry_season_60s.json --output output/lion-dry-season-60s.mp4
+      - name: Verify video duration, resolution, frame rate and audio
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/lion-dry-season-60s.mp4 | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          d = json.loads(open("output/ffprobe.json").read())
+          streams = d["streams"]
+          v = next(s for s in streams if s["codec_type"] == "video")
+          a = next(s for s in streams if s["codec_type"] == "audio")
+          seconds = float(d["format"]["duration"])
+          assert seconds >= 60, f"Video is shorter than 60 seconds: {seconds:.2f}"
+          assert seconds <= 110, f"Unexpectedly long prototype: {seconds:.2f}"
+          assert v["codec_name"] == "h264" and v["width"] == 1280 and v["height"] == 720, v
+          assert v["r_frame_rate"] == "24/1", v
+          assert a["codec_name"] == "aac", a
+          print(f"PASS: {seconds:.2f}s | 1280x720 | 24fps | H.264 + AAC")
+          PY
+      - name: Upload prototype video and QA reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lion-dry-season-60s-prototype
+          path: |
+            output/lion-dry-season-60s.mp4
+            output/render_report.json
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 14

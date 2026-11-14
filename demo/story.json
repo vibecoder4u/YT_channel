@@ -1,0 +1,15 @@
+{
+  "title": "How the Internet Finds a Website",
+  "voice": "en-US-GuyNeural",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "scenes": [
+    {"duration": 4, "narration": "You type a website name into your browser. But how does your computer know where that website lives?", "caption": "You enter a website address", "background": "desk", "action": "type", "character": "Alex", "accent": "#42B7A5"},
+    {"duration": 5, "narration": "First, your browser asks a directory system called DNS to find the website's numerical address.", "caption": "DNS looks up the address", "background": "network", "action": "think", "character": "Alex", "accent": "#F4B942", "diagram": "dns"},
+    {"duration": 5, "narration": "The request travels across networks, passing through routers that guide it toward the right server.", "caption": "Routers guide the request", "background": "network", "action": "run", "character": "Packet", "accent": "#5B9CF6", "diagram": "route"},
+    {"duration": 5, "narration": "The server receives the request and sends the website files back across the network.", "caption": "The server sends the page", "background": "server", "action": "wave", "character": "Server", "accent": "#42B7A5"},
+    {"duration": 5, "narration": "Your browser assembles those files into the page you see on your screen.", "caption": "Your browser builds the page", "background": "desk", "action": "celebrate", "character": "Alex", "accent": "#F4B942"},
+    {"duration": 4, "narration": "All of this happens in seconds, every time you visit a website.", "caption": "A journey completed in seconds", "background": "network", "action": "point", "character": "Alex", "accent": "#42B7A5"}
+  ]
+}

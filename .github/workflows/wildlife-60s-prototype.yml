@@ -1,4 +1,4 @@
-name: 60-Second Illustrated Wildlife Prototype
+name: 60-Second Illustrated Wildlife Prototype (15 FPS)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     paths:
       - 'lion_render_v2.py'
       - 'engine.py'
-      - 'demo/lion_dry_season_60s.json'
+      - 'demo/lion_territory_patrol_60s.json'
       - '.github/workflows/wildlife-60s-prototype.yml'
   workflow_dispatch:
 
@@ -23,31 +23,31 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - name: Install FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Verify preinstalled FFmpeg
+        run: ffmpeg -version | head -n 2
       - name: Install renderer dependencies
         run: pip install -r requirements.txt
-      - name: Compile the improved character renderer
+      - name: Compile the character renderer
         run: python -m py_compile lion_render_v2.py engine.py
       - name: Validate the new six-scene script
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          p = Path("demo/lion_dry_season_60s.json")
+          p = Path("demo/lion_territory_patrol_60s.json")
           story = json.loads(p.read_text())
           assert len(story["scenes"]) == 6
+          assert story["fps"] == 15
           assert all(len(s["narration"].split()) >= 20 for s in story["scenes"])
           assert len({s["heading"] for s in story["scenes"]}) == 6
-          print("Script OK:", story["title"], "| scenes:", len(story["scenes"]))
+          print("Script OK:", story["title"], "| scenes:", len(story["scenes"]), "| fps:", story["fps"])
           PY
       - name: Render narrated 60-second-plus prototype
-        run: python lion_render_v2.py --script demo/lion_dry_season_60s.json --output output/lion-dry-season-60s.mp4
-      - name: Verify video duration, resolution, frame rate and audio
+        run: python lion_render_v2.py --script demo/lion_territory_patrol_60s.json --output output/lion-territory-patrol-60s.mp4
+      - name: Verify duration, resolution, frame rate and audio
         run: |
-          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/lion-dry-season-60s.mp4 | tee output/ffprobe.json
+          mkdir -p output
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/lion-territory-patrol-60s.mp4 | tee output/ffprobe.json
           python - <<'PY'
           import json
           d = json.loads(open("output/ffprobe.json").read())
@@ -58,16 +58,16 @@ jobs:
           assert seconds >= 60, f"Video is shorter than 60 seconds: {seconds:.2f}"
           assert seconds <= 110, f"Unexpectedly long prototype: {seconds:.2f}"
           assert v["codec_name"] == "h264" and v["width"] == 1280 and v["height"] == 720, v
-          assert v["r_frame_rate"] == "24/1", v
+          assert v["r_frame_rate"] == "15/1", v
           assert a["codec_name"] == "aac", a
-          print(f"PASS: {seconds:.2f}s | 1280x720 | 24fps | H.264 + AAC")
+          print(f"PASS: {seconds:.2f}s | 1280x720 | 15fps | H.264 + AAC")
           PY
       - name: Upload prototype video and QA reports
         uses: actions/upload-artifact@v4
         with:
-          name: lion-dry-season-60s-prototype
+          name: lion-territory-patrol-60s-15fps
           path: |
-            output/lion-dry-season-60s.mp4
+            output/lion-territory-patrol-60s.mp4
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error

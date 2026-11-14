@@ -132,5 +132,5 @@ def make_frame(scene,frame,frames,size,scene_number,scene_count,title):
 engine.make_frame=make_frame
 def run(story_path,output): engine.run(story_path,output)
 if __name__=="__main__":
-    p=argparse.ArgumentParser(); p.add_argument("--script",default="demo/lion_dry_season_60s.json"); p.add_argument("--output",default="output/lion-dry-season-60s.mp4")
+    p=argparse.ArgumentParser(); p.add_argument("--script",default="demo/lion_territory_patrol_60s.json"); p.add_argument("--output",default="output/lion-territory-patrol-60s.mp4")
     a=p.parse_args(); run(a.script,a.output)

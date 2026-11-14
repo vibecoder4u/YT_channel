@@ -105,10 +105,16 @@ def _overlay_handwriting(frame, scene, frame_index, frame_count):
 _original_make_frame = engine.make_frame
 
 def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
-    image = _original_make_frame(scene, frame, frames, size, scene_number, scene_count, title)
-    # Give concept and comparison beats a clear hand-written teaching moment.
+    # engine.py previously animated against the JSON placeholder duration (1s),
+    # even when narration made the rendered scene 15–25s long. Derive the real
+    # scene duration from its rendered frame count so gestures and handwriting
+    # continue throughout the spoken explanation instead of freezing early.
+    timed_scene = dict(scene)
+    timed_scene["duration"] = frames / 24.0  # current five-minute story is 24 fps
+    image = _original_make_frame(timed_scene, frame, frames, size, scene_number, scene_count, title)
+    # Give concept beats a clear hand-written teaching moment.
     if scene.get("handwrite", scene.get("visual") == "concept"):
-        image = _overlay_handwriting(image, scene, frame, frames)
+        image = _overlay_handwriting(image, timed_scene, frame, frames)
     return image
 
 engine.make_frame = make_frame

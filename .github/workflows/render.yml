@@ -4,13 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'engine.py'
       - 'animal_render.py'
       - 'wildlife_diagram_render.py'
       - 'lion_render.py'
       - 'demo/lion_water_2min.json'
-      - 'tests/**'
-      - '.github/workflows/render.yml'
   workflow_dispatch:
     inputs:
       script:

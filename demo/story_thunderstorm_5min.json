@@ -1,0 +1,279 @@
+{
+  "title": "Inside a Thunderstorm: How the Sky Builds a Giant Electric Engine",
+  "voice": "en-US-GuyNeural",
+  "rate": "-7%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.65,
+  "presenter_style": "thin_line_art_stickman",
+  "caption_mode": "edge_tts_word_boundaries",
+  "scenes": [
+    {
+      "heading": "A storm begins on an ordinary day",
+      "caption": "Warm air, moisture, and unstable atmosphere",
+      "takeaway": "Thunderstorms need moisture, instability, and lift",
+      "visual": "concept",
+      "diagram_title": "Three ingredients for a storm",
+      "diagram_subtitle": "The atmosphere is preparing to rise",
+      "visual_title": "A warm, humid afternoon",
+      "items": [
+        "Warm surface",
+        "Moist air",
+        "Rising motion"
+      ],
+      "action": "point",
+      "accent": "#20A68A",
+      "narration": "A summer afternoon can feel quiet, hot, and heavy. The air near the ground warms under sunlight, while water evaporates from lakes, rivers, soil, and plants. If the atmosphere above is unstable, that warm, moist air can begin to rise. A thunderstorm is not simply a cloud that appears out of nowhere. It is a powerful engine powered by heat, moisture, and moving air."
+    },
+    {
+      "heading": "The Sun heats the ground",
+      "caption": "The surface transfers energy to nearby air",
+      "takeaway": "Uneven heating creates rising pockets of warm air",
+      "visual": "flow",
+      "diagram_title": "Solar heating starts the process",
+      "diagram_subtitle": "Energy moves from sunlight into the lower atmosphere",
+      "items": [
+        "Sunlight",
+        "Warm ground",
+        "Warm air",
+        "Updraft"
+      ],
+      "action": "demonstrate",
+      "accent": "#F2A93B",
+      "narration": "Sunlight does not heat every surface equally. Dark soil, roads, rooftops, and fields absorb different amounts of energy. The warmed ground transfers heat to the air touching it. Pockets of air become warmer and less dense than the surrounding atmosphere. They begin to rise in buoyant bubbles called thermals. Stronger heating can make those rising currents more vigorous."
+    },
+    {
+      "heading": "Moist air rises and expands",
+      "caption": "Pressure drops as air climbs",
+      "takeaway": "Rising air expands and cools",
+      "visual": "process",
+      "diagram_title": "A parcel of air climbs",
+      "diagram_subtitle": "Pressure decreases with altitude",
+      "items": [
+        "Ground level",
+        "Rising parcel",
+        "Lower pressure",
+        "Cooling air"
+      ],
+      "action": "walk",
+      "accent": "#3979D8",
+      "narration": "As a pocket of air rises, the surrounding air pressure becomes lower. The parcel expands because there is less pressure squeezing it. Expansion uses energy, so the parcel cools even if it has not touched a cold surface. This is called adiabatic cooling. The higher the air travels, the more its temperature can fall, changing invisible water vapour into the next stage of the storm."
+    },
+    {
+      "heading": "A cloud takes shape",
+      "caption": "Water vapour condenses into droplets",
+      "takeaway": "Clouds form when moist air cools to saturation",
+      "visual": "concept",
+      "diagram_title": "From invisible vapour to visible cloud",
+      "diagram_subtitle": "Tiny droplets scatter sunlight",
+      "items": [
+        "Water vapour",
+        "Cooling",
+        "Condensation",
+        "Cloud droplets"
+      ],
+      "action": "point",
+      "accent": "#20A68A",
+      "narration": "Air can hold different amounts of water vapour at different temperatures. Cooling raises the relative humidity. When the air reaches saturation, water vapour condenses onto microscopic particles called cloud condensation nuclei. Billions of tiny liquid droplets form, making a cloud visible. The rising current continues feeding the cloud with warm, moist air from below."
+    },
+    {
+      "heading": "The cloud grows upward",
+      "caption": "A strong updraft builds a towering cloud",
+      "takeaway": "Continuous uplift can create a cumulonimbus cloud",
+      "visual": "flow",
+      "diagram_title": "The growing storm tower",
+      "diagram_subtitle": "The updraft feeds the cloud from below",
+      "items": [
+        "Moist inflow",
+        "Strong updraft",
+        "Towering cloud",
+        "Anvil top"
+      ],
+      "action": "demonstrate",
+      "accent": "#8067C8",
+      "narration": "When the atmosphere is unstable, a rising parcel can stay warmer than the air around it and keep accelerating upward. The cloud grows taller and taller, sometimes reaching several kilometres into the atmosphere. Its cauliflower-shaped towers can spread into a broad, flattened anvil near the tropopause, where the stable layer above limits further vertical growth."
+    },
+    {
+      "heading": "Inside the cloud, droplets collide",
+      "caption": "Water and ice particles grow",
+      "takeaway": "Collisions help create rain and electrical charge",
+      "visual": "process",
+      "diagram_title": "Particles grow inside the cloud",
+      "diagram_subtitle": "Updrafts carry droplets into colder air",
+      "items": [
+        "Tiny droplets",
+        "Supercooled water",
+        "Ice crystals",
+        "Growing hail"
+      ],
+      "action": "think",
+      "accent": "#3979D8",
+      "narration": "Higher inside the storm, temperatures fall below freezing. Some droplets remain liquid even below zero degrees Celsius. They are called supercooled droplets. They collide with ice crystals and small hail particles, freezing onto their surfaces. Other particles collide and rebound. These countless microscopic encounters help the storm grow precipitation and separate electrical charge."
+    },
+    {
+      "heading": "The storm sorts electric charge",
+      "caption": "Ice collisions separate positive and negative regions",
+      "takeaway": "Charge separation creates a powerful electric field",
+      "visual": "compare",
+      "diagram_title": "Electrical charge separates",
+      "diagram_subtitle": "A simplified view of charge regions in a storm",
+      "items": [
+        "Upper cloud: positive",
+        "Lower cloud: negative"
+      ],
+      "action": "point",
+      "accent": "#E66D59",
+      "narration": "Inside a strong thunderstorm, collisions between ice crystals, graupel, and supercooled droplets transfer electrical charge. Turbulent updrafts and downdrafts sort these particles by size and weight. A common pattern develops: positive charge gathers near the upper cloud, while much of the negative charge collects lower down. The real structure is more complicated, but the separation creates an enormous electric field."
+    },
+    {
+      "heading": "The electric field intensifies",
+      "caption": "Charge builds faster than the air can safely insulate",
+      "takeaway": "A strong electric field can trigger electrical breakdown",
+      "visual": "network",
+      "diagram_title": "A charged cloud above the landscape",
+      "diagram_subtitle": "The electric field strengthens between separated charges",
+      "items": [
+        "Positive cloud top",
+        "Negative cloud base",
+        "Ground response",
+        "Strong field"
+      ],
+      "action": "demonstrate",
+      "accent": "#F2A93B",
+      "narration": "The negative charge near the cloud base repels electrons at the ground, leaving some surfaces relatively positive. The cloud and ground now behave like two sides of a giant electrical system. Air normally acts as an insulator, preventing current from flowing freely. But as the electric field becomes strong enough, the air can begin to ionize along narrow paths. A lightning discharge may soon follow."
+    },
+    {
+      "heading": "A lightning leader searches downward",
+      "caption": "A branching channel advances in steps",
+      "takeaway": "A stepped leader creates a conductive path",
+      "visual": "timeline",
+      "diagram_title": "The first channel develops",
+      "diagram_subtitle": "A simplified sequence before the bright flash",
+      "items": [
+        "Field intensifies",
+        "Leader branches",
+        "Ground connection",
+        "Return stroke"
+      ],
+      "action": "point",
+      "accent": "#8067C8",
+      "narration": "One common cloud-to-ground lightning process begins with a stepped leader. A faint, branching channel of ionized air advances downward in short steps. As it approaches the surface, objects and elevated points can launch upward streamers. When a connection forms, a conductive path links the cloud to the ground. The brilliant return stroke then travels rapidly along that channel."
+    },
+    {
+      "heading": "Lightning heats the air intensely",
+      "caption": "A bright flash and expanding shock wave",
+      "takeaway": "Rapid heating creates the sound wave we hear as thunder",
+      "visual": "concept",
+      "diagram_title": "The lightning channel",
+      "diagram_subtitle": "A narrow channel heats and expands surrounding air",
+      "items": [
+        "Electrical current",
+        "Extreme heating",
+        "Rapid expansion"
+      ],
+      "action": "celebrate",
+      "accent": "#F2A93B",
+      "narration": "The lightning channel can heat nearby air to temperatures hotter than the surface of the Sun. This heating happens extremely quickly. The air expands explosively, creating a pressure wave that travels outward. We see the flash almost instantly because light travels much faster than sound. The pressure wave reaches our ears later as thunder, sometimes as a sharp crack and sometimes as a long rolling rumble."
+    },
+    {
+      "heading": "Rain falls from the storm",
+      "caption": "Droplets grow until gravity wins",
+      "takeaway": "Precipitation forms as cloud particles become heavy enough to fall",
+      "visual": "flow",
+      "diagram_title": "From cloud particles to rainfall",
+      "diagram_subtitle": "Growing droplets descend through the cloud",
+      "items": [
+        "Cloud droplets",
+        "Collision and growth",
+        "Heavy drops",
+        "Rainfall"
+      ],
+      "action": "demonstrate",
+      "accent": "#3979D8",
+      "narration": "Cloud droplets are tiny, so they can remain suspended in rising air. They grow when they collide and merge with other droplets. In colder parts of the storm, ice particles can collect supercooled water and become larger. Eventually, rain drops or melting ice particles become heavy enough to fall through the updraft. Rain may cool the air beneath the cloud as it evaporates."
+    },
+    {
+      "heading": "Downdrafts change the storm",
+      "caption": "Cool air sinks and spreads near the ground",
+      "takeaway": "Rain-cooled air can produce powerful outflow",
+      "visual": "cycle",
+      "diagram_title": "The storm's competing air currents",
+      "diagram_subtitle": "Updrafts feed growth while downdrafts bring air down",
+      "items": [
+        "Warm inflow",
+        "Updraft",
+        "Precipitation",
+        "Cool downdraft"
+      ],
+      "action": "walk",
+      "accent": "#20A68A",
+      "narration": "Falling precipitation drags air downward through friction. Evaporation of rain cools that air, making it denser than its surroundings. The cool air accelerates toward the ground and spreads outward when it arrives. This is a downdraft and its spreading boundary is called a gust front. It can bring a sudden wind shift and a noticeable temperature drop before the heaviest rain arrives."
+    },
+    {
+      "heading": "The storm can organise into stages",
+      "caption": "New updrafts and old downdrafts interact",
+      "takeaway": "A storm's structure determines how long it survives",
+      "visual": "timeline",
+      "diagram_title": "A simplified thunderstorm life cycle",
+      "diagram_subtitle": "Storms evolve as their air currents interact",
+      "items": [
+        "Cumulus",
+        "Mature",
+        "Dissipating"
+      ],
+      "action": "point",
+      "accent": "#8067C8",
+      "narration": "A single-cell thunderstorm is often described in three broad stages. In the cumulus stage, rising air builds the cloud. In the mature stage, strong updrafts and downdrafts coexist, producing heavy rain, lightning, and sometimes hail. In the dissipating stage, downdrafts undercut the warm inflow and the storm loses its energy supply. Real storms do not always follow this neat sequence."
+    },
+    {
+      "heading": "Some storms become much more dangerous",
+      "caption": "Wind shear can organise long-lived storms",
+      "takeaway": "Vertical wind shear can help separate updrafts and downdrafts",
+      "visual": "compare",
+      "diagram_title": "Ordinary pulse versus organised storm",
+      "diagram_subtitle": "Wind changing with height can reshape storm structure",
+      "items": [
+        "Short-lived pulse",
+        "Organised rotating storm"
+      ],
+      "action": "think",
+      "accent": "#E66D59",
+      "narration": "When wind speed or direction changes with height, the atmosphere has vertical wind shear. Shear can tilt a storm's updraft and help keep it from being choked by its own downdraft. Some storms become organised systems, including supercells with rotating updrafts. These storms can produce very large hail, damaging winds, intense rainfall, and tornadoes, although not every supercell produces a tornado."
+    },
+    {
+      "heading": "Safety matters when thunder is near",
+      "caption": "Move indoors before the storm reaches you",
+      "takeaway": "If you hear thunder, lightning is close enough to be dangerous",
+      "visual": "process",
+      "diagram_title": "A safer response to lightning",
+      "diagram_subtitle": "Take shelter and wait until the storm has passed",
+      "items": [
+        "Hear thunder",
+        "Go indoors",
+        "Stay away from windows",
+        "Wait 30 minutes"
+      ],
+      "action": "demonstrate",
+      "accent": "#E66D59",
+      "narration": "Thunderstorms are fascinating, but lightning is dangerous. If you hear thunder, go inside a substantial building or a hard-topped vehicle. Avoid open fields, isolated trees, water, and exposed hilltops. Stay away from windows and plumbing during the storm. Wait at least thirty minutes after the last thunder before going back outside. No outdoor location is completely safe when lightning is nearby."
+    },
+    {
+      "heading": "The sky's electric engine winds down",
+      "caption": "Moisture, heat, and unstable air powered the storm",
+      "takeaway": "A thunderstorm is a connected system of energy and motion",
+      "visual": "cycle",
+      "diagram_title": "The complete storm system",
+      "diagram_subtitle": "Heat and moisture drive a chain of atmospheric events",
+      "items": [
+        "Heating",
+        "Rising air",
+        "Cloud growth",
+        "Charge and rain"
+      ],
+      "action": "celebrate",
+      "accent": "#20A68A",
+      "narration": "A thunderstorm begins with warm, moist air rising through an unstable atmosphere. The air expands and cools, clouds grow, and droplets and ice particles collide. Those collisions help separate charge, while growing precipitation eventually falls and creates downdrafts. Lightning and thunder reveal the energy stored in the storm. What looks like a single dark cloud is really a complex system of heat, water, ice, electricity, and moving air."
+    }
+  ]
+}

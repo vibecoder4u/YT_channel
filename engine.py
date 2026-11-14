@@ -268,20 +268,29 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
     headline=scene.get("heading",scene.get("caption",""))
     for i,txt in enumerate(wrap(headline,26)[:2]):
         d.text((int(w*.055),int(h*.25)+i*52),txt,font=font(36,True),fill=INK)
-    t=frame/max(1,frames-1)*float(scene.get("duration",5))
+    t=frame/max(1,frames-1)*float(scene.get("_render_duration",scene.get("duration",5)))
     draw_visual(d,scene,t,w,h,color)
     action=scene.get("action","explain")
-    # Educational presenter changes gesture periodically rather than holding
-    # one frozen pose for the entire narration paragraph.
+    # Change poses during long narration, not just the mouth or a bobbing sprite.
     if action == "explain":
-        action = ("explain","point","think","explain")[int(t/3.8)%4]
-    # Takeaway panel is painted first; the presenter sits in front of it,
-    # so the character's legs and shoes are never hidden by the lower-third.
-    rounded(d,(int(w*.055),int(h*.76),int(w*.94),int(h*.94)),20,(255,255,255),(226,231,234),2)
-    takeaway=scene.get("takeaway",scene.get("caption",""))
-    for i,txt in enumerate(wrap(takeaway,76)[:2]):
-        d.text((int(w*.50),int(h*.815)+i*34),txt,font=font(22,True),fill=INK,anchor="mm")
-    draw_character(d,action,int(w*.19),int(h*.78),t,1.08)
+        action = ("explain","point","walk","think","demonstrate")[int(t/5.5)%5]
+    # Floating motion marks and drifting background particles add subtle life.
+    for k in range(5):
+        px=int(w*.42 + ((k*137 + t*19) % (w*.48)))
+        py=int(h*.20 + (k%3)*int(h*.13) + math.sin(t*.8+k)*5)
+        d.ellipse((px-3,py-3,px+3,py+3),fill=tuple(int(v*.72) for v in color))
+    draw_character(d,action,int(w*.19),int(h*.77),t,1.08)
+    # Phrase-level subtitles follow actual Edge TTS word-boundary timestamps.
+    cues=scene.get("_caption_cues",[])
+    active=next((c for c in cues if c["start"] <= t < c["end"]),None)
+    if active is None and cues and t >= cues[-1]["end"]:
+        active=cues[-1]
+    rounded(d,(int(w*.34),int(h*.865),int(w*.94),int(h*.965)),16,(255,255,255),(218,225,228),2)
+    subtitle=(active or {}).get("text","")
+    lines=wrap(subtitle,48)[:2]
+    for i,txt in enumerate(lines):
+        d.text((int(w*.64),int(h*.905)+(i-(len(lines)-1)/2)*27),txt,
+               font=font(21,True),fill=INK,anchor="mm")
     # continuous chapter progress
     prog=((scene_number-1)+frame/max(1,frames))/max(1,scene_count)
     d.rounded_rectangle((int(w*.055),int(h*.965),int(w*.94),int(h*.978)),radius=6,fill=(222,227,225))
@@ -290,7 +299,54 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
 
 
 async def synthesize(text, voice, path, rate):
-    await edge_tts.Communicate(text, voice, rate=rate).save(str(path))
+    """Save speech and collect Edge TTS word-boundary timestamps."""
+    boundaries = []
+    communicate = edge_tts.Communicate(text, voice, rate=rate)
+    with open(path, "wb") as audio:
+        async for chunk in communicate.stream():
+            if chunk.get("type") == "audio":
+                audio.write(chunk["data"])
+            elif chunk.get("type") == "WordBoundary":
+                boundaries.append({
+                    "text": chunk.get("text", ""),
+                    "start": float(chunk.get("offset", 0)) / 10_000_000,
+                    "duration": float(chunk.get("duration", 0)) / 10_000_000,
+                })
+    return boundaries
+
+
+def build_caption_cues(boundaries, narration, duration):
+    """Group real TTS word timings into short, readable subtitle phrases."""
+    words = [b for b in boundaries if b.get("text")]
+    if not words:
+        tokens = narration.split()
+        if not tokens:
+            return []
+        count = max(1, math.ceil(len(tokens) / 7))
+        cues = []
+        for i in range(count):
+            part = tokens[i*7:(i+1)*7]
+            cues.append({"start": duration*i/count, "end": duration*min(1,(i+1)/count),
+                         "text": " ".join(part)})
+        return cues
+    cues, group = [], []
+    for word in words:
+        group.append(word)
+        token = str(word["text"])
+        if len(group) >= 7 or token.endswith((".", "?", "!", ",", ";", ":")):
+            cues.append({
+                "start": max(0.0, group[0]["start"]),
+                "end": min(duration, max(group[-1]["start"] + group[-1]["duration"], group[0]["start"] + .35)),
+                "text": " ".join(str(item["text"]) for item in group),
+            })
+            group = []
+    if group:
+        cues.append({
+            "start": max(0.0, group[0]["start"]),
+            "end": min(duration, max(group[-1]["start"] + group[-1]["duration"], group[0]["start"] + .35)),
+            "text": " ".join(str(item["text"]) for item in group),
+        })
+    return cues
 
 
 def probe_duration(path):
@@ -328,9 +384,12 @@ def run(story_path, output):
     print(f"Preparing narration for {len(story['scenes'])} scenes...")
     for i,scene in enumerate(story["scenes"]):
         path=audio_dir/f"scene_{i:03}.mp3"
-        asyncio.run(synthesize(scene["narration"],voice,path,rate))
+        boundaries=asyncio.run(synthesize(scene["narration"],voice,path,rate))
         audio_files.append(path)
-        durations.append(probe_duration(path))
+        duration=probe_duration(path)
+        durations.append(duration)
+        scene["_render_duration"]=duration+float(story.get("reading_beat",0.35))
+        scene["_caption_cues"]=build_caption_cues(boundaries,scene["narration"],duration)
     total_audio=sum(durations)
     print(f"Narration duration: {total_audio/60:.2f} minutes")
     # Add the same short reading beat to each audio segment that is reserved
@@ -372,7 +431,7 @@ def run(story_path, output):
     video_duration=probe_duration(output)
     if video_duration+1 < total_audio:
         raise RuntimeError(f"Output ({video_duration:.1f}s) is shorter than narration ({total_audio:.1f}s)")
-    report={"title":story.get("title",""),"scenes":len(story["scenes"]),"narration_seconds":round(total_audio,2),"video_seconds":round(video_duration,2),"fps":fps,"resolution":f"{size[0]}x{size[1]}","output":str(output)}
+    report={"title":story.get("title",""),"scenes":len(story["scenes"]),"narration_seconds":round(total_audio,2),"video_seconds":round(video_duration,2),"fps":fps,"resolution":f"{size[0]}x{size[1]}","caption_timing":"edge_tts_word_boundaries" if all(scene.get("_caption_cues") for scene in story["scenes"]) else "fallback_estimated","caption_cues":sum(len(scene.get("_caption_cues",[])) for scene in story["scenes"]),"presenter_style":"thin_line_art_stickman","output":str(output)}
     (output.parent/"render_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
     print(json.dumps(report,indent=2))
 

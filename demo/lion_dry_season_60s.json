@@ -1,0 +1,59 @@
+{
+  "title": "Surviving the Dry Season: A Lion's Search for Water",
+  "voice": "en-US-GuyNeural",
+  "rate": "-2%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.25,
+  "scenes": [
+    {
+      "heading": "When the land dries",
+      "caption": "The dry season changes the daily routine",
+      "narration": "Across the African savanna, the dry season can last for months. Grass turns pale, shallow pools disappear, and every animal must adjust its routine to find enough water.",
+      "animal_action": "approach",
+      "movement": "approach",
+      "water": false
+    },
+    {
+      "heading": "A lion follows familiar routes",
+      "caption": "Memory helps locate dependable water",
+      "narration": "A lion does not wander at random. It moves through a familiar territory, using remembered paths and the changing activity of other animals to locate places where water may remain.",
+      "animal_action": "walk",
+      "movement": "approach",
+      "water": false
+    },
+    {
+      "heading": "The waterhole comes into view",
+      "caption": "A rare pool becomes a vital resource",
+      "narration": "As the lion reaches a waterhole, it slows down and checks the surroundings. Water is essential, but a crowded drinking place can also bring competition and unexpected danger.",
+      "animal_action": "lower",
+      "movement": "hold",
+      "water": true
+    },
+    {
+      "heading": "Drinking takes patience",
+      "caption": "The lion lowers its head to the surface",
+      "narration": "The lion bends its head and begins to drink. Its tongue curls water into the mouth in repeated laps, while ripples spread outward across the surface.",
+      "animal_action": "drink",
+      "movement": "hold",
+      "water": true
+    },
+    {
+      "heading": "A moment to recover",
+      "caption": "Rest helps conserve energy in the heat",
+      "narration": "After drinking, the lion raises its head and pauses. During the hottest hours, resting in shade and avoiding unnecessary movement helps conserve energy until conditions become cooler.",
+      "animal_action": "lift",
+      "movement": "hold",
+      "water": true
+    },
+    {
+      "heading": "The journey continues",
+      "caption": "Survival depends on adapting to change",
+      "narration": "The waterhole is only one part of survival. As the seasons shift, lions must keep finding food, shelter and safe routes through a landscape that never stays the same.",
+      "animal_action": "approach",
+      "movement": "exit",
+      "water": false
+    }
+  ]
+}

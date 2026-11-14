@@ -1,0 +1,46 @@
+import json
+import unittest
+from pathlib import Path
+
+import engine
+
+
+class EducationalEngineTests(unittest.TestCase):
+    def setUp(self):
+        self.story = json.loads(Path("demo/story_5min.json").read_text(encoding="utf-8"))
+
+    def test_long_form_story_has_substantial_content(self):
+        engine.validate_story(self.story)
+        self.assertGreaterEqual(len(self.story["scenes"]), 15)
+        words = sum(len(scene["narration"].split()) for scene in self.story["scenes"])
+        self.assertGreaterEqual(words, 550)
+        self.assertLessEqual(words, 900)
+
+    def test_all_scenes_have_required_visual_fields(self):
+        for scene in self.story["scenes"]:
+            self.assertTrue(scene.get("visual"))
+            self.assertTrue(scene.get("heading") or scene.get("caption"))
+            self.assertTrue(scene.get("takeaway"))
+
+    def test_frames_change_during_a_long_explanatory_scene(self):
+        scene = {
+            "heading": "Packets move across networks",
+            "caption": "Routers forward packets",
+            "takeaway": "Each hop moves data closer",
+            "visual": "flow",
+            "items": ["Device", "Router", "Provider", "Server"],
+            "action": "explain",
+            "duration": 30,
+            "narration": "A packet moves through a series of networks.",
+        }
+        first = engine.make_frame(scene, 0, 720, (1280, 720), 1, 1, "Animation test")
+        later = engine.make_frame(scene, 360, 720, (1280, 720), 1, 1, "Animation test")
+        self.assertNotEqual(first.tobytes(), later.tobytes())
+
+    def test_invalid_empty_story_is_rejected(self):
+        with self.assertRaises(ValueError):
+            engine.validate_story({"scenes": []})
+
+
+if __name__ == "__main__":
+    unittest.main()

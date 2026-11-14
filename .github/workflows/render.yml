@@ -6,6 +6,7 @@ on:
     paths:
       - 'engine.py'
       - 'animal_render.py'
+      - 'wildlife_diagram_render.py'
       - 'demo/forest_fox_2min.json'
       - 'tests/**'
       - '.github/workflows/render.yml'
@@ -41,9 +42,9 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run renderer regression tests
         run: python -m unittest discover -s tests -v
-      - name: Render original illustrated fox documentary
+      - name: Render colorful animated wildlife documentary
         run: |
-          python animal_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4"
+          python wildlife_diagram_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4"
       - name: Verify MP4 streams and documentary duration
         run: |
           ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4" | tee output/ffprobe.json
@@ -57,7 +58,8 @@ jobs:
           assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
           assert report["video_seconds"] >= 90, report
           assert report["video_seconds"] <= 180, report
-          print("Verified two-minute animal documentary:", report)
+          assert report["resolution"] == "1280x720", report
+          print("Verified animated wildlife documentary:", report)
           PY
       - name: Upload MP4 and QA reports
         uses: actions/upload-artifact@v4

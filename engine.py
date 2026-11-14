@@ -12,7 +12,11 @@ import os
 import shutil
 import subprocess
 import textwrap
+import html
+import io
 from pathlib import Path
+
+import cairosvg
 
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
@@ -23,6 +27,7 @@ BG = (247, 248, 244)
 INK = (27, 38, 53)
 MUTED = (103, 117, 132)
 PALETTE = [(42, 163, 145), (244, 180, 62), (80, 135, 211), (226, 112, 92)]
+SVG_CACHE = {}
 
 
 def font(size, bold=False):
@@ -254,6 +259,83 @@ def draw_visual(draw, scene, t, w, h, color):
         draw.text(((x0+x1)//2,(y0+y1)//2),title,font=font(28,True),fill=INK,anchor="mm")
 
 
+
+def draw_svg_diagram(image, scene, t, w, h, color):
+    """Render a vivid, layered SVG infographic and animate its build in stages."""
+    x0, y0 = int(w * .36), int(h * .18)
+    box_w, box_h = int(w * .58), int(h * .47)
+    items = [str(v) for v in scene.get("items", [])[:5]] or ["Observe", "Understand", "Apply"]
+    kind = scene.get("visual", "flow")
+    title = html.escape(str(scene.get("diagram_title", scene.get("visual_title", scene.get("heading", "How it works")))))
+    subtitle = html.escape(str(scene.get("diagram_subtitle", scene.get("caption", "A process in motion"))))
+    colors = ["#20A68A", "#3979D8", "#F2A93B", "#E66D59", "#8067C8"]
+    stage = min(len(items), max(1, int(max(0, t) / 1.7) + 1))
+    cache_key = (id(scene), kind, stage, tuple(items), title, subtitle)
+    png = SVG_CACHE.get(cache_key)
+    if png is None:
+        esc = html.escape
+        parts = [
+            '<svg xmlns="http://www.w3.org/2000/svg" width="740" height="338" viewBox="0 0 740 338">',
+            '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2FAFF"/><stop offset="1" stop-color="#E8F7F0"/></linearGradient>',
+            '<filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#31546B" flood-opacity=".14"/></filter>',
+            '<marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#55758A"/></marker></defs>',
+            '<rect x="2" y="2" width="736" height="334" rx="26" fill="url(#bg)"/>',
+            '<circle cx="675" cy="56" r="62" fill="#BFE9E0" opacity=".55"/><circle cx="70" cy="290" r="74" fill="#C9E0FA" opacity=".38"/>',
+            '<path d="M0 258 Q150 220 285 270 T560 258 T740 245 L740 338 L0 338Z" fill="#D8F0E8" opacity=".72"/>',
+            f'<text x="30" y="39" font-family="DejaVu Sans" font-size="17" font-weight="700" fill="#31546B">{title[:52]}</text>',
+            f'<text x="30" y="64" font-family="DejaVu Sans" font-size="11" fill="#638092">{subtitle[:78]}</text>',
+        ]
+        n = len(items)
+        if kind == "cycle" and n >= 3:
+            cx, cy, rx, ry = 370, 194, 245, 105
+            coords = []
+            for i in range(n):
+                a = -math.pi / 2 + i * 2 * math.pi / n
+                coords.append((cx + rx * math.cos(a), cy + ry * math.sin(a)))
+            for i, (px, py) in enumerate(coords):
+                qx, qy = coords[(i + 1) % n]
+                parts.append(f'<path d="M {px:.1f} {py:.1f} L {qx:.1f} {qy:.1f}" stroke="#64879A" stroke-width="7" stroke-linecap="round" marker-end="url(#arr)" opacity=".8"/>')
+            for i, ((cxn, cyn), label) in enumerate(zip(coords, items)):
+                if i >= stage: continue
+                fill = colors[i % len(colors)]
+                parts.append(f'<g filter="url(#shadow)"><rect x="{cxn-79:.1f}" y="{cyn-28:.1f}" width="158" height="56" rx="18" fill="{fill}"/><circle cx="{cxn-52:.1f}" cy="{cyn:.1f}" r="15" fill="#FFFFFF" opacity=".24"/><text x="{cxn-52:.1f}" y="{cyn+5:.1f}" text-anchor="middle" font-family="DejaVu Sans" font-size="14" font-weight="700" fill="#FFFFFF">{i+1}</text><text x="{cxn+10:.1f}" y="{cyn+5:.1f}" text-anchor="middle" font-family="DejaVu Sans" font-size="13" font-weight="700" fill="#FFFFFF">{esc(label[:17])}</text></g>')
+        elif kind == "compare" and n >= 2:
+            for i, label in enumerate(items[:2]):
+                xx = 42 + i * 340
+                fill = colors[(i + 1) % len(colors)]
+                parts.append(f'<g filter="url(#shadow)"><rect x="{xx}" y="105" width="300" height="174" rx="24" fill="{fill}"/><circle cx="{xx+150}" cy="151" r="27" fill="#FFFFFF" opacity=".22"/><text x="{xx+150}" y="161" text-anchor="middle" font-family="DejaVu Sans" font-size="27" font-weight="700" fill="#FFFFFF">{"A" if i == 0 else "B"}</text><text x="{xx+150}" y="218" text-anchor="middle" font-family="DejaVu Sans" font-size="18" font-weight="700" fill="#FFFFFF">{esc(label[:25])}</text><rect x="{xx+80}" y="239" width="140" height="8" rx="4" fill="#FFFFFF" opacity=".45"/></g>')
+        else:
+            gap, node_w = 20, min(128, (684 - 20 * (n - 1)) // n)
+            total = node_w * n + gap * (n - 1)
+            left = (740 - total) / 2
+            for i, label in enumerate(items):
+                cx = left + i * (node_w + gap)
+                fill = colors[i % len(colors)]
+                if i < n - 1:
+                    parts.append(f'<path d="M{cx+node_w+3:.1f} 183 H{cx+node_w+gap-4:.1f}" stroke="#55758A" stroke-width="7" stroke-linecap="round" marker-end="url(#arr)"/>')
+                if i >= stage: continue
+                parts.append(f'<g filter="url(#shadow)"><rect x="{cx:.1f}" y="112" width="{node_w}" height="142" rx="19" fill="{fill}"/><circle cx="{cx+node_w/2:.1f}" cy="151" r="23" fill="#FFFFFF" opacity=".24"/><text x="{cx+node_w/2:.1f}" y="158" text-anchor="middle" font-family="DejaVu Sans" font-size="20" font-weight="700" fill="#FFFFFF">{i+1}</text>')
+                words = textwrap.wrap(label, width=13)[:2]
+                for j, word in enumerate(words):
+                    parts.append(f'<text x="{cx+node_w/2:.1f}" y="{205+j*18}" text-anchor="middle" font-family="DejaVu Sans" font-size="12" font-weight="700" fill="#FFFFFF">{esc(word)}</text>')
+                parts.append('</g>')
+        parts.append('<rect x="28" y="309" width="684" height="7" rx="3.5" fill="#C4DCD9"/>')
+        parts.append(f'<rect x="28" y="309" width="{684*stage/len(items):.1f}" height="7" rx="3.5" fill="#168F80"/>')
+        parts.append('</svg>')
+        png = cairosvg.svg2png(bytestring="".join(parts).encode("utf-8"), output_width=box_w, output_height=box_h)
+        if len(SVG_CACHE) > 180:
+            SVG_CACHE.clear()
+        SVG_CACHE[cache_key] = png
+    diagram = Image.open(io.BytesIO(png)).convert("RGB")
+    image.paste(diagram, (x0, y0))
+    if kind not in ("compare", "cycle") and len(items) > 1:
+        progress = (t * .22) % 1.0
+        mx = x0 + int(box_w * (.08 + .84 * progress))
+        my = y0 + int(box_h * .53)
+        d = ImageDraw.Draw(image)
+        d.ellipse((mx-9, my-9, mx+9, my+9), fill=(255,255,255), outline=(30,94,112), width=3)
+
+
 def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
     w,h=size
     im=Image.new("RGB",size,BG)
@@ -269,7 +351,7 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
     for i,txt in enumerate(wrap(headline,26)[:2]):
         d.text((int(w*.055),int(h*.25)+i*52),txt,font=font(36,True),fill=INK)
     t=frame/max(1,frames-1)*float(scene.get("_render_duration",scene.get("duration",5)))
-    draw_visual(d,scene,t,w,h,color)
+    draw_svg_diagram(im,scene,t,w,h,color)
     action=scene.get("action","explain")
     # Change poses during long narration, not just the mouth or a bobbing sprite.
     if action == "explain":

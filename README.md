@@ -7,10 +7,10 @@ A script-driven 2D educational renderer. It creates original stickman presenters
 - **Synchronized transitions:** a matching audio reading beat is inserted after each scene, preventing cumulative visual/audio drift.
 - **Continuous motion:** presenter breathing, blinking and changing gestures; highlighted flow steps; animated timeline markers; staggered chart-bar reveals.
 - **Educational visual vocabulary:** process flows, networks, cycles, timelines, comparisons, concept panels, and simple data charts.
-- **Render QA:** automated tests check story structure and verify that frames change during a long scene. The Actions workflow checks H.264 video, AAC audio, and a minimum four-minute output.
+- **Render QA:** automated tests check story structure and verify that frames change during a long scene. The Actions workflow checks H.264 video, AAC audio, and a minimum 4.5-minute output.
 
 ## Five-minute demo
-The included `demo/story_5min.json` is a 17-scene educational explainer, written for approximately five minutes of narration.
+The included `demo/story_5min.json` is a 17-scene educational explainer, 17-scene, 635-word explainer written for approximately five minutes of narration.
 
 ### GitHub Actions render
 1. Open the repository's **Actions** tab.

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'lion_render.py'
+      - 'lion_render_v2.py'
       - 'engine.py'
       - 'demo/lion_dry_season_60s.json'
       - '.github/workflows/wildlife-60s-prototype.yml'
@@ -29,6 +29,8 @@ jobs:
           sudo apt-get install -y ffmpeg
       - name: Install renderer dependencies
         run: pip install -r requirements.txt
+      - name: Compile the improved character renderer
+        run: python -m py_compile lion_render_v2.py engine.py
       - name: Validate the new six-scene script
         run: |
           python - <<'PY'
@@ -42,7 +44,7 @@ jobs:
           print("Script OK:", story["title"], "| scenes:", len(story["scenes"]))
           PY
       - name: Render narrated 60-second-plus prototype
-        run: python lion_render.py --script demo/lion_dry_season_60s.json --output output/lion-dry-season-60s.mp4
+        run: python lion_render_v2.py --script demo/lion_dry_season_60s.json --output output/lion-dry-season-60s.mp4
       - name: Verify video duration, resolution, frame rate and audio
         run: |
           ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/lion-dry-season-60s.mp4 | tee output/ffprobe.json

@@ -1,6 +1,10 @@
 name: Render Educational Stickman Video
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'engine.py'
   workflow_dispatch:
     inputs:
       script:

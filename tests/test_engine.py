@@ -60,6 +60,25 @@ class EducationalEngineTests(unittest.TestCase):
         self.assertAlmostEqual(cues[0]["end"], 1.15)
         self.assertEqual(cues[1]["text"], "across networks.")
 
+    def test_new_thunderstorm_script_has_full_documentary_content(self):
+        story = json.loads(Path("demo/story_thunderstorm_5min.json").read_text(encoding="utf-8"))
+        engine.validate_story(story)
+        self.assertGreaterEqual(len(story["scenes"]), 15)
+        words = sum(len(scene["narration"].split()) for scene in story["scenes"])
+        self.assertGreaterEqual(words, 700)
+        self.assertLessEqual(words, 1100)
+
+    def test_solid_colour_svg_diagram_renders_and_builds_in_stages(self):
+        scene = {"visual": "flow", "heading": "A coloured process", "caption": "Stages build",
+                 "items": ["Warm air", "Cloud", "Rain", "Lightning"]}
+        first = engine.Image.new("RGB", (1280, 720), engine.BG)
+        later = engine.Image.new("RGB", (1280, 720), engine.BG)
+        engine.draw_svg_diagram(first, scene, 0.2, 1280, 720, (32, 166, 138))
+        engine.draw_svg_diagram(later, scene, 5.5, 1280, 720, (32, 166, 138))
+        self.assertNotEqual(first.crop((460, 125, 1200, 470)).tobytes(),
+                            later.crop((460, 125, 1200, 470)).tobytes())
+        self.assertGreater(len(engine.SVG_CACHE), 0)
+
     def test_invalid_empty_story_is_rejected(self):
         with self.assertRaises(ValueError):
             engine.validate_story({"scenes": []})

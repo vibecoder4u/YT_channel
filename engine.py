@@ -65,7 +65,9 @@ def arrow(draw, start, end, color, width=6):
 
 
 def draw_character(draw, action, x, y, t, scale=1.0, color=INK):
-    """Expressive articulated presenter with a readable silhouette and continuous motion."""
+    """Expressive articulated presenter with a readable silhouette and continuous motion.
+
+The presenter uses layered facial details, visible joints, and timed gestures."""
     s = scale
     bob = math.sin(t * 3.2) * 3.2 * s
     sway = math.sin(t * 1.35) * 3.5 * s

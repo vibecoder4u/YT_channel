@@ -108,20 +108,78 @@ def lion(im,x,ground,t,action="walk",scale=1.16,gait=1.0):
     head=head_layer((int(x+87*s),int(g-154*s)),t,action,dip,s)
     return Image.alpha_composite(im.convert("RGBA"),head).convert("RGB")
 
+def acacia(im,x,y,scale=1.0):
+    d=ImageDraw.Draw(im); s=scale
+    stroke(d,[(x,y),(x-5*s,y-155*s),(x+8*s,y-265*s)],(91,66,43),int(17*s))
+    stroke(d,[(x,y-120*s),(x-82*s,y-205*s)],(91,66,43),int(11*s))
+    stroke(d,[(x+3*s,y-170*s),(x+93*s,y-244*s)],(91,66,43),int(10*s))
+    for cx,cy,rx,ry in [(x-5*s,y-276*s,104*s,37*s),(x-82*s,y-215*s,66*s,29*s),(x+94*s,y-252*s,76*s,31*s)]:
+        ell(d,(cx-rx,cy-ry,cx+rx,cy+ry),(76,103,53),None)
+
+def rival_lion(im,x,y,t):
+    d=ImageDraw.Draw(im)
+    # distant rival is deliberately a darker, smaller silhouette to establish depth
+    ell(d,(x-92,y-85,x+78,y-22),(83,62,46),None)
+    ell(d,(x+36,y-121,x+105,y-43),(83,62,46),None)
+    stroke(d,[(x-64,y-35),(x-75,y+20)],(66,51,41),9)
+    stroke(d,[(x-8,y-35),(x-1,y+20)],(66,51,41),9)
+    stroke(d,[(x+40,y-48),(x+56,y+18)],(66,51,41),9)
+    stroke(d,[(x-87,y-68),(x-125,y-86+math.sin(t*2)*5)],(66,51,41),6)
+
+def scent_marks(im,t):
+    d=ImageDraw.Draw(im)
+    for i in range(3):
+        yy=470-i*25
+        x=835+math.sin(t*1.5+i)*10
+        d.arc((x-30,yy-30,x+30,yy+30),205,320,fill=(246,220,168),width=3)
+
 def make_frame(scene,frame,frames,size,scene_number,scene_count,title):
     w,h=size; duration=max(1.,float(scene.get("_render_duration",scene.get("duration",6))))
-    t=frame/max(1,frames-1)*duration; action=scene.get("animal_action","walk"); movement=scene.get("movement","hold")
+    t=frame/max(1,frames-1)*duration
+    action=scene.get("animal_action","walk"); movement=scene.get("movement","hold")
     im=landscape(t)
-    water=bool(scene.get("water",False))
-    if water: pool(im,t,action=="drink")
-    if movement=="approach": x=lerp(220,730,smooth(t/duration)); gait=1.0 if t<duration*.86 else .0
-    elif movement=="exit": x=lerp(730,1450,smooth(t/duration)); gait=1.0
-    else: x=730+math.sin(t*.8)*2; gait=0.0
-    if action in ("walk","approach"): gait=1.0 if movement!="hold" else .7
-    elif action in ("lower","drink","lift","rest"): gait=0.0
-    im=lion(im,x,590,t,action,1.16,gait); d=ImageDraw.Draw(im)
+    # Scene-specific blocking: each beat has its own landmark, scale and action.
+    if scene_number==1:
+        acacia(im,1040,535,1.15)
+        x=lerp(150,410,smooth(t/duration)); scale=.82; ground=600; gait=.85
+    elif scene_number==2:
+        acacia(im,1080,555,.88)
+        x=lerp(150,800,smooth(t/duration)); scale=1.02; ground=590; gait=1.0
+    elif scene_number==3:
+        acacia(im,1010,585,1.25)
+        x=690+math.sin(t*.35)*5; scale=1.08; ground=590; gait=0.0
+        scent_marks(im,t)
+    elif scene_number==4:
+        x=580; scale=1.20; ground=590; gait=0.0
+        # Sound arcs and a moving bird silhouette give the pause a readable purpose.
+        d=ImageDraw.Draw(im)
+        for i in range(3):
+            d.arc((760+i*18,350-i*8,850+i*18,450+i*8),285,75,fill=(250,231,194),width=3)
+        bx=lerp(1080,900,(t%duration)/duration)
+        stroke(d,[(bx-18,355),(bx,345),(bx+18,355)],(61,57,49),4)
+    elif scene_number==5:
+        x=620; scale=1.18; ground=590; gait=0.0
+        rival_lion(im,1050,530,t)
+        d=ImageDraw.Draw(im)
+        for i in range(4):
+            d.arc((770+i*14,390-i*10,890+i*14,490+i*10),200,340,fill=(239,211,174),width=3)
+    else:
+        acacia(im,190,570,.95)
+        x=lerp(690,1450,smooth(t/duration)); scale=1.02; ground=590; gait=1.0
+        # Foreground grass sweeps across frame to reinforce the departure.
+        d=ImageDraw.Draw(im)
+        for i in range(22):
+            gx=(i*59+int(t*34))%w
+            stroke(d,[(gx,650),(gx-8,610-(i%4)*7)],(75,96,49),3)
+    if action in ("lower","rest","listen","roar","mark"):
+        gait=0.0
+    if action in ("walk","approach","patrol"):
+        gait=1.0 if scene_number in (1,2,6) else gait
+    im=lion(im,x,ground,t,action,scale,gait)
+    d=ImageDraw.Draw(im)
+    # Story-specific visual cue, rather than a repeated generic caption card alone.
     d.rounded_rectangle((48,34,w-48,91),radius=15,fill=(250,235,211),outline=(122,86,55),width=2)
-    label(d,(72,63),title[:58],17,(105,75,49),"lm")
+    label(d,(72,63),scene.get("heading",title)[:58],19,(105,75,49),"lm")
     d.rounded_rectangle((48,h-88,w-48,h-34),radius=13,fill=(250,239,219),outline=(165,127,91),width=2)
     label(d,(w//2,h-61),scene.get("caption",scene.get("heading","")),20,(68,51,39))
     progress=((scene_number-1)+frame/max(1,frames))/max(1,scene_count)

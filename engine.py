@@ -513,7 +513,7 @@ def run(story_path, output):
     video_duration=probe_duration(output)
     if video_duration+1 < total_audio:
         raise RuntimeError(f"Output ({video_duration:.1f}s) is shorter than narration ({total_audio:.1f}s)")
-    report={"title":story.get("title",""),"scenes":len(story["scenes"]),"narration_seconds":round(total_audio,2),"video_seconds":round(video_duration,2),"fps":fps,"resolution":f"{size[0]}x{size[1]}","caption_timing":"edge_tts_word_boundaries" if all(scene.get("_caption_cues") for scene in story["scenes"]) else "fallback_estimated","caption_cues":sum(len(scene.get("_caption_cues",[])) for scene in story["scenes"]),"presenter_style":"thin_line_art_stickman","output":str(output)}
+    report={"title":story.get("title",""),"scenes":len(story["scenes"]),"narration_seconds":round(total_audio,2),"video_seconds":round(video_duration,2),"fps":fps,"resolution":f"{size[0]}x{size[1]}","caption_timing":"edge_tts_word_boundaries" if all(scene.get("_caption_cues") for scene in story["scenes"]) else "fallback_estimated","caption_cues":sum(len(scene.get("_caption_cues",[])) for scene in story["scenes"]),"presenter_style":"thin_line_art_stickman","diagram_renderer":"solid_colour_svg","svg_diagrams":len(story["scenes"]),"output":str(output)}
     (output.parent/"render_report.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
     print(json.dumps(report,indent=2))
 

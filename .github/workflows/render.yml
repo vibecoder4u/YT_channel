@@ -1,4 +1,4 @@
-name: Render Illustrated Forest Animal Documentary
+name: Render Hand-Drawn Lion Waterhole Documentary
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
       - 'engine.py'
       - 'animal_render.py'
       - 'wildlife_diagram_render.py'
-      - 'demo/forest_fox_2min.json'
+      - 'lion_render.py'
+      - 'demo/lion_water_2min.json'
+      - 'demo/lion_water_2min.json'
       - 'tests/**'
       - '.github/workflows/render.yml'
   workflow_dispatch:
@@ -15,11 +17,11 @@ on:
       script:
         description: 'JSON documentary script path'
         required: true
-        default: 'demo/forest_fox_2min.json'
+        default: 'demo/lion_water_2min.json'
       output_name:
         description: 'MP4 file name (without extension)'
         required: true
-        default: 'forest-fox-documentary'
+        default: 'lion-water-documentary'
 
 permissions:
   contents: read
@@ -42,9 +44,9 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run renderer regression tests
         run: python -m unittest discover -s tests -v
-      - name: Render colorful animated wildlife documentary
+      - name: Render hand-drawn animated lion drinking at a desert waterhole
         run: |
-          python wildlife_diagram_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4"
+          python lion_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4"
       - name: Verify MP4 streams and documentary duration
         run: |
           ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4" | tee output/ffprobe.json

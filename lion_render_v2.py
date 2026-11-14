@@ -82,6 +82,9 @@ def head_layer(pivot,t,action,dip,s):
     ell(d,(px+1*s,py+14*s,px+31*s,py+43*s),CREAM,None)
     d.polygon([(px-8*s,py+17*s),(px+9*s,py+17*s),(px+s,py+29*s)],fill=INK)
     jaw=math.sin(t*8)*3*s if action=="drink" else 0
+    if action=="roar":
+        ell(d,(px-24*s,py+25*s,px+25*s,py+68*s),(72,34,29),INK,3*s)
+        ell(d,(px-18*s,py+52*s,px+18*s,py+61*s),(198,91,83),None)
     stroke(d,[(px+s,py+29*s),(px+s,py+42*s+jaw),(px-9*s,py+46*s+jaw)],INK,3*s)
     for side in (-1,1):
         for k in range(2): stroke(d,[(px+side*17*s,py+28*s+k*8*s),(px+side*51*s,py+22*s+k*8*s)],(112,78,53),2*s)
@@ -90,7 +93,10 @@ def head_layer(pivot,t,action,dip,s):
         stroke(d,[(px+3*s,py+42*s),(px+7*s,py+42*s+length)],(183,73,82),5*s)
         if lap and int(t*3)%2==0: ell(d,(px+1*s,py+61*s,px+7*s,py+68*s),(191,231,220),None)
     # Rotate the whole mane/face as one head around its shoulder-side hinge.
-    return layer.rotate(-27*dip,resample=Image.Resampling.BICUBIC,center=(int(px-48*s),int(py+55*s)))
+    angle=-27*dip
+    if action=="listen": angle=12+math.sin(t*1.7)*3
+    if action=="roar": angle=-8
+    return layer.rotate(angle,resample=Image.Resampling.BICUBIC,center=(int(px-48*s),int(py+55*s)))
 
 def lion(im,x,ground,t,action="walk",scale=1.16,gait=1.0):
     s=scale; bob=math.sin(t*10)*4*s*gait; g=ground+bob; d=ImageDraw.Draw(im)
@@ -104,7 +110,7 @@ def lion(im,x,ground,t,action="walk",scale=1.16,gait=1.0):
     ell(d,(x+35*s,g-171*s,x+123*s,g-53*s),(193,126,67),INK,4*s)
     stroke(d,[(x-70*s,g-75*s),(x-5*s,g-66*s),(x+57*s,g-74*s)],(159,105,60),3*s)
     leg(d,(x-75*s,g-89*s),t*5.3,gait,False,False); leg(d,(x+55*s,g-89*s),t*5.3,gait,True,False)
-    dip=smooth(t/1.8) if action=="lower" else 1.0 if action=="drink" else 1-smooth(t/1.45) if action=="lift" else 0.0
+    dip=smooth(t/1.8) if action in ("lower","mark") else 1.0 if action=="drink" else 1-smooth(t/1.45) if action=="lift" else 0.0
     head=head_layer((int(x+87*s),int(g-154*s)),t,action,dip,s)
     return Image.alpha_composite(im.convert("RGBA"),head).convert("RGB")
 

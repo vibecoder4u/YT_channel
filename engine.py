@@ -173,7 +173,7 @@ def run(story_path, output):
     voice_file=OUT/"voiceover.mp3"
     subprocess.run(["ffmpeg","-y","-f","concat","-safe","0","-i",str(concat),"-c:a","libmp3lame",str(voice_file)],check=True)
     # Pad the picture track if speech runs longer; shortest=video keeps narration intact.
-    subprocess.run(["ffmpeg","-y","-i",str(raw),"-i",str(voice_file),"-map","0:v:0","-map","1:a:0","-c:v","copy","-c:a","aac","-b:a","192k","-shortest",str(output)],check=True)
+    subprocess.run(["ffmpeg","-y","-i",str(raw),"-i",str(voice_file),"-map","0:v:0","-map","1:a:0","-vf","tpad=stop_mode=clone:stop_duration=60","-c:v","libx264","-preset","veryfast","-pix_fmt","yuv420p","-c:a","aac","-b:a","192k","-shortest",str(output)],check=True)
     print(f"Created: {output}")
 
 if __name__=="__main__":

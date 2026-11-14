@@ -1,17 +1,17 @@
 {
   "title": "How the Internet Works: From Your Device to the World",
   "voice": "en-US-GuyNeural",
-  "rate": "+0%",
+  "rate": "-8%",
   "fps": 24,
   "width": 1280,
   "height": 720,
-  "reading_beat": 0.45,
+  "reading_beat": 0.8,
   "scenes": [
     {
       "heading": "A message begins with a question",
       "caption": "Your device asks for information",
       "takeaway": "Every web visit starts with a request",
-      "narration": "Imagine opening a website on your phone. You tap its name, and almost immediately a page appears. Behind that simple moment, your device begins a carefully coordinated journey. It must discover where the website lives, contact the right computer, request the information, and bring the answer back to you.",
+      "narration": "Open a website on your phone. You tap its name, and a page appears. Behind that simple moment, your device starts a journey: it finds the website, contacts a server, requests information, and brings the answer back.",
       "visual": "concept",
       "visual_title": "Tap a name. Start a journey.",
       "action": "explain",
@@ -22,7 +22,7 @@
       "heading": "Your device joins a network",
       "caption": "Wi-Fi or mobile data connects you",
       "takeaway": "A local connection is your first step",
-      "narration": "First, your phone or computer connects to a nearby network. At home, that is usually a Wi-Fi router. Outside, it may be a mobile network. The connection gives your device a path to send data beyond the room, building, or cell tower where you are.",
+      "narration": "First, your device connects to a nearby network. At home, that is usually Wi-Fi through a router. Outside, it may be a mobile network. This connection gives your device a path beyond your room or the cell tower nearby.",
       "visual": "flow",
       "items": [
         "Your device",
@@ -37,7 +37,7 @@
       "heading": "The router is a traffic guide",
       "caption": "Packets need a next direction",
       "takeaway": "Routers forward data toward its destination",
-      "narration": "Your router does more than provide wireless access. It forwards traffic between your local devices and the wider internet. When data arrives, the router checks where it should go next. It does not need to understand the whole message. It needs enough addressing information to choose a useful next hop.",
+      "narration": "Your router forwards traffic between local devices and the wider internet. It checks where data should go next and sends it onward. It does not need to understand the message itself; it needs enough addressing information to choose a next hop.",
       "visual": "network",
       "items": [
         "Laptop",
@@ -53,7 +53,7 @@
       "heading": "Names are easier than numbers",
       "caption": "People remember names, networks use addresses",
       "takeaway": "A domain name must be resolved to an IP address",
-      "narration": "People prefer memorable names such as example dot com. Networks use numerical Internet Protocol addresses to identify destinations. The Domain Name System, usually called DNS, connects those two worlds. It works like a distributed directory, helping your device discover which address is associated with the name you entered.",
+      "narration": "People remember names like example dot com. Networks use numerical Internet Protocol addresses. The Domain Name System, or DNS, connects these two worlds. It helps your device discover the address associated with the name you entered.",
       "visual": "compare",
       "items": [
         "example.com",
@@ -67,7 +67,7 @@
       "heading": "DNS looks up the destination",
       "caption": "A resolver searches for the answer",
       "takeaway": "DNS answers are often cached to save time",
-      "narration": "Your device may already know the answer from a recent lookup. If not, it asks a DNS resolver, often provided by your internet service or another DNS service. The resolver follows the DNS system to find the required record. It can store the result temporarily, so the same question may be answered faster next time.",
+      "narration": "Your device may already have a recent DNS answer stored. Otherwise, it asks a DNS resolver, often provided by your internet service. The resolver finds the requested record and can temporarily cache it, making the next lookup faster.",
       "visual": "flow",
       "items": [
         "Browser",
@@ -83,7 +83,7 @@
       "heading": "The request is divided into packets",
       "caption": "Large data travels in manageable pieces",
       "takeaway": "Packets carry data plus delivery information",
-      "narration": "Once the destination is known, your device prepares the request for transport. Data is carried in packets, small units that include information needed for delivery. Breaking communication into packets makes networks flexible. Different packets can share network links, and the receiving system can put the pieces back into the correct order.",
+      "narration": "Your device prepares the request for transport. Data travels in packets, small units carrying information needed for delivery. Packets let many conversations share network links, and the receiving system can reassemble the pieces in the right order.",
       "visual": "process",
       "items": [
         "Request",
@@ -99,7 +99,7 @@
       "heading": "IP addresses help packets travel",
       "caption": "Addresses identify source and destination",
       "takeaway": "IP provides addressing across interconnected networks",
-      "narration": "Internet Protocol gives packets source and destination addresses. Think of these as delivery information, not a complete route map. Each network device examines the destination and decides where to forward the packet next. This shared addressing system allows many different networks to exchange information as one connected internet.",
+      "narration": "Internet Protocol gives packets source and destination addresses. These are delivery details, not a complete route map. Network devices examine the destination and decide where to forward each packet, allowing separate networks to communicate.",
       "visual": "network",
       "items": [
         "Source IP",
@@ -115,7 +115,7 @@
       "heading": "Routers pass traffic between networks",
       "caption": "Each hop moves a packet closer",
       "takeaway": "The path can change as network conditions change",
-      "narration": "A packet may cross several routers before it reaches the server. Each router consults its forwarding information and sends the packet toward another network. The exact path is not necessarily fixed forever. Network operators adjust routes, and the internet can often move traffic along alternate paths when links become unavailable or congested.",
+      "narration": "A packet may cross several routers before reaching a server. Each router forwards it toward another network. The path can change as operators adjust routes or avoid unavailable and congested links. The internet is designed to work across many possible paths.",
       "visual": "flow",
       "items": [
         "Home router",
@@ -131,7 +131,7 @@
       "heading": "TCP helps reliable conversations",
       "caption": "The sender and receiver coordinate",
       "takeaway": "TCP can detect loss and retransmit missing data",
-      "narration": "Many web connections use the Transmission Control Protocol, or TCP, to provide reliable ordered delivery. The two endpoints establish a connection and track the data being exchanged. If some data does not arrive, TCP can arrange for it to be sent again. This helps applications receive a complete, correctly ordered stream of bytes.",
+      "narration": "Many web connections use Transmission Control Protocol, or TCP, for reliable ordered delivery. The endpoints track the data being exchanged. If information goes missing, TCP can arrange to send it again, helping applications receive a complete stream.",
       "visual": "cycle",
       "items": [
         "Connect",
@@ -147,7 +147,7 @@
       "heading": "HTTPS protects the exchange",
       "caption": "Encryption helps keep data private",
       "takeaway": "TLS protects data in transit and authenticates the server",
-      "narration": "Modern websites commonly use HTTPS. It combines HTTP with transport encryption provided by TLS. During setup, your browser checks the website certificate and negotiates keys for a secure session. Encryption makes intercepted traffic difficult to read, while authentication helps your browser verify that it is talking to the intended website rather than an impostor.",
+      "narration": "Websites commonly use HTTPS, which combines HTTP with encryption from TLS. Your browser checks the website certificate and negotiates secure keys. Encryption makes intercepted traffic difficult to read, while authentication helps verify the server you intended to reach.",
       "visual": "process",
       "items": [
         "Browser",
@@ -162,7 +162,7 @@
       "heading": "The server receives the request",
       "caption": "A data center runs the website",
       "takeaway": "A server is a computer prepared to answer requests",
-      "narration": "The packets eventually reach the destination network and the web server. A server is simply a computer running software that listens for requests and responds to them. Large websites may use many servers, spread across data centers. They can divide work, store copies of content, and keep services available when individual machines fail.",
+      "narration": "The packets reach a web server: a computer running software that listens for requests and sends responses. Large websites may use many servers in different data centers. They share work, store content, and help keep services available.",
       "visual": "concept",
       "visual_title": "A server waits for requests",
       "action": "point",
@@ -173,7 +173,7 @@
       "heading": "The application builds a response",
       "caption": "Code and data become a web page",
       "takeaway": "The response may combine templates, data, and media",
-      "narration": "The server software decides what to send back. It may read information from a database, run application code, select a page template, and prepare images or other files. Some pages are already stored and can be sent quickly. Others are assembled for the particular request, such as a dashboard showing your latest activity.",
+      "narration": "The server application decides what to send. It may read a database, run code, choose a page template, and prepare images or other files. Some pages are ready to send; others are assembled for your particular request.",
       "visual": "flow",
       "items": [
         "Request",
@@ -189,7 +189,7 @@
       "heading": "The response travels home",
       "caption": "Packets return across the network",
       "takeaway": "The reply follows network routes back to your device",
-      "narration": "The server sends response data back through the network. Those packets may travel across different links and routers on their way to you. Your device receives them and the transport protocols handle ordering and retransmission when needed. The browser can begin processing useful pieces before every part of the page has finished arriving.",
+      "narration": "The response travels back through routers and network links. Packets may take different paths on the way home. Your device receives them, while transport protocols handle ordering and missing data. The browser can begin processing before every file arrives.",
       "visual": "flow",
       "items": [
         "Web server",
@@ -205,7 +205,7 @@
       "heading": "Your browser turns data into a page",
       "caption": "HTML, CSS, and JavaScript shape the result",
       "takeaway": "The browser parses, lays out, and paints content",
-      "narration": "The browser interprets the response. HTML describes the page structure, CSS controls its appearance, and JavaScript can add interactive behavior. The browser calculates where elements belong, paints pixels, and updates the screen as more resources arrive. That is why text may appear first while images or interactive features continue loading.",
+      "narration": "Your browser interprets the response. HTML describes structure, CSS controls appearance, and JavaScript adds interactive behavior. The browser calculates layout, paints pixels, and updates the screen as resources arrive. Text may appear while images continue loading.",
       "visual": "process",
       "items": [
         "HTML structure",
@@ -221,7 +221,7 @@
       "heading": "Caching avoids repeated journeys",
       "caption": "Nearby copies can make loading faster",
       "takeaway": "Caches reduce delay and network traffic",
-      "narration": "Not every visit needs to fetch everything from the original server. Your browser may cache images, scripts, and stylesheets. A content delivery network can keep copies of popular files closer to people around the world. When a valid cached copy is available, the browser can reuse it, reducing waiting time and the amount of data that must cross long distances.",
+      "narration": "Your browser may reuse cached images, scripts, and stylesheets instead of downloading them again. Content delivery networks also keep copies closer to viewers. Valid cached files reduce waiting time and the amount of data crossing long distances.",
       "visual": "compare",
       "items": [
         "Fetch every time",
@@ -235,7 +235,7 @@
       "heading": "Many systems cooperate",
       "caption": "No single machine is the internet",
       "takeaway": "The internet is a network of networks",
-      "narration": "A website visit depends on many independent systems: your device, local router, internet provider, DNS resolvers, transit networks, data centers, servers, and browser software. No single organization owns the entire internet. Shared standards allow equipment and services built by different companies and countries to communicate across a common global system.",
+      "narration": "A website visit depends on your device, router, provider, DNS, transit networks, data centers, servers, and browser software. No single organization owns the whole internet. Shared standards let equipment and services around the world communicate.",
       "visual": "cycle",
       "items": [
         "Devices",
@@ -251,7 +251,7 @@
       "heading": "The whole journey happens quickly",
       "caption": "A few seconds hide many coordinated steps",
       "takeaway": "Name lookup, routing, secure transport, and rendering work together",
-      "narration": "So the next time a website appears after one tap, remember the journey behind it. Your device connects, DNS helps find an address, packets cross networks, secure protocols protect the exchange, a server prepares a response, and your browser renders the result. The internet feels simple because these complicated steps cooperate at remarkable speed.",
+      "narration": "Next time a website appears after one tap, remember the hidden journey. Your device connects, DNS finds an address, packets cross networks, secure protocols protect the exchange, a server responds, and your browser renders the page.",
       "visual": "timeline",
       "items": [
         "Connect",

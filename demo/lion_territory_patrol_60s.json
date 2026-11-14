@@ -55,5 +55,6 @@
       "movement": "exit",
       "water": false
     }
-  ]
+  ],
+  "production_note": "15fps prototype to reduce rendering load while retaining smooth illustrated motion."
 }

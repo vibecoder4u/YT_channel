@@ -1,23 +1,24 @@
-name: Render Educational Stickman Video
+name: Render Illustrated Forest Animal Documentary
 
 on:
   push:
     branches: [main]
     paths:
       - 'engine.py'
-      - 'render_enhancements.py'
-      - 'demo/story_5min.json'
+      - 'animal_render.py'
+      - 'demo/forest_fox_2min.json'
+      - 'tests/**'
       - '.github/workflows/render.yml'
   workflow_dispatch:
     inputs:
       script:
-        description: 'JSON script path'
+        description: 'JSON documentary script path'
         required: true
-        default: 'demo/story_5min.json'
+        default: 'demo/forest_fox_2min.json'
       output_name:
         description: 'MP4 file name (without extension)'
         required: true
-        default: 'educational-5min'
+        default: 'forest-fox-documentary'
 
 permissions:
   contents: read
@@ -38,14 +39,14 @@ jobs:
           sudo apt-get install -y ffmpeg
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run animation regression tests
+      - name: Run renderer regression tests
         run: python -m unittest discover -s tests -v
-      - name: Validate script and render MP4 with handwriting animation
+      - name: Render original illustrated fox documentary
         run: |
-          python render_enhancements.py --script "${{ inputs.script || 'demo/story_5min.json' }}" --output "output/${{ inputs.output_name || 'educational-5min' }}.mp4"
-      - name: Verify MP4 streams and duration
+          python animal_render.py --script "${{ inputs.script || 'demo/forest_fox_2min.json' }}" --output "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4"
+      - name: Verify MP4 streams and documentary duration
         run: |
-          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'educational-5min' }}.mp4" | tee output/ffprobe.json
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4" | tee output/ffprobe.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -54,15 +55,16 @@ jobs:
           streams = probe["streams"]
           assert any(s["codec_type"] == "video" and s["codec_name"] == "h264" for s in streams), streams
           assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
-          assert report["video_seconds"] >= 270, report
-          print("Verified long-form MP4:", report)
+          assert report["video_seconds"] >= 90, report
+          assert report["video_seconds"] <= 180, report
+          print("Verified two-minute animal documentary:", report)
           PY
-      - name: Upload rendered video and QA report
+      - name: Upload MP4 and QA reports
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output_name || 'educational-5min' }}
+          name: ${{ inputs.output_name || 'forest-fox-documentary' }}
           path: |
-            output/${{ inputs.output_name || 'educational-5min' }}.mp4
+            output/${{ inputs.output_name || 'forest-fox-documentary' }}.mp4
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error

@@ -29,7 +29,7 @@
         "Wi-Fi router",
         "Internet provider"
       ],
-      "action": "walk",
+      "action": "explain",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -91,7 +91,7 @@
         "Packet B",
         "Packet C"
       ],
-      "action": "walk",
+      "action": "explain",
       "accent": "#5087D3",
       "duration": 1
     },
@@ -123,7 +123,7 @@
         "Regional network",
         "Data center"
       ],
-      "action": "walk",
+      "action": "explain",
       "accent": "#F4B43E",
       "duration": 1
     },
@@ -197,7 +197,7 @@
         "Home router",
         "Your device"
       ],
-      "action": "walk",
+      "action": "explain",
       "accent": "#2AA391",
       "duration": 1
     },

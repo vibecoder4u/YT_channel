@@ -1,0 +1,51 @@
+name: Rigby2D Character Pipeline
+on:
+  push:
+    branches: [feature/rigby2d-character-pipeline]
+    paths:
+      - 'rigby2d_pipeline.py'
+      - 'assets/rigby2d/hero/**'
+      - 'docs/RIGBY2D_PIPELINE.md'
+      - '.github/workflows/rigby2d-character-pipeline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render-character:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg and Pillow
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install Pillow
+      - name: Validate adapter
+        run: python -m py_compile rigby2d_pipeline.py
+      - name: Render Rigby2D character action reel
+        run: python rigby2d_pipeline.py --output output/rigby2d-character-test.mp4
+      - name: Validate MP4 properties
+        run: |
+          ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json output/rigby2d-character-test.mp4 > output/probe.json
+          python - <<'PY'
+          import json
+          p=json.load(open('output/probe.json'))
+          s=p['streams'][0]
+          assert (s['width'],s['height'])==(1280,720), s
+          assert s['r_frame_rate']=='30/1', s
+          assert float(p['format']['duration']) >= 12.0, p
+          print('PASS: 1280x720, 30 FPS, 12+ seconds')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rigby2d-character-action-reel
+          path: |
+            output/rigby2d-character-test.mp4
+            output/rigby2d-report.json
+          if-no-files-found: error
+          retention-days: 14

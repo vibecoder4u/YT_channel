@@ -1,0 +1,40 @@
+name: Delete downloaded run artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: GitHub Actions run ID whose artifacts you have already downloaded
+        required: true
+        type: string
+permissions:
+  actions: write
+jobs:
+  delete-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate run ID
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "run_id must contain digits only"
+            exit 1
+          fi
+      - name: Delete artifacts but preserve run logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          response=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GH_REPOSITORY/actions/runs/$RUN_ID/artifacts")
+          ids=$(echo "$response" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(str(a["id"]) for a in d.get("artifacts",[]) if not a.get("expired",False)))')
+          if [ -z "$ids" ]; then
+            echo "No active artifacts found for run $RUN_ID"
+            exit 0
+          fi
+          for id in $ids; do
+            echo "Deleting artifact $id"
+            curl -fsSL -X DELETE -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GH_REPOSITORY/actions/artifacts/$id"
+          done
+          echo "Deleted all active artifacts for run $RUN_ID. Workflow run and logs are preserved."

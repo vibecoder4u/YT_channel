@@ -1,0 +1,65 @@
+name: Cinematic Human Animation Prototype
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'human_render_cinematic.py'
+      - 'demo/rescue_at_the_river_55s.json'
+      - '.github/workflows/cinematic-human-prototype.yml'
+      - 'engine.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile renderer
+        run: python -m py_compile human_render_cinematic.py engine.py
+      - name: Validate animation storyboard
+        run: |
+          python - <<'PY'
+          import json
+          s=json.load(open('demo/rescue_at_the_river_55s.json'))
+          assert len(s['scenes']) == 5
+          assert sum(x['duration'] for x in s['scenes']) >= 50
+          assert [x['human_action'] for x in s['scenes']] == ['arrive','plan','slip','rescue','resolve']
+          print('Storyboard OK:',s['title'])
+          PY
+      - name: Render cinematic character animation
+        run: python human_render_cinematic.py --script demo/rescue_at_the_river_55s.json --output output/rescue-at-the-river-cinematic.mp4
+      - name: Verify video and audio
+        run: |
+          mkdir -p output
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/rescue-at-the-river-cinematic.mp4 > output/ffprobe.json
+          python - <<'PY'
+          import json
+          d=json.load(open('output/ffprobe.json'))
+          v=next(x for x in d['streams'] if x['codec_type']=='video')
+          a=next(x for x in d['streams'] if x['codec_type']=='audio')
+          duration=float(d['format']['duration'])
+          assert duration >= 50 and duration <= 100, duration
+          assert (v['codec_name'],v['width'],v['height'],v['r_frame_rate']) == ('h264',1280,720,'24/1'),v
+          assert a['codec_name']=='aac',a
+          print(f'PASS: {duration:.1f}s 1280x720 24fps H.264/AAC')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rescue-at-the-river-cinematic-human-test
+          path: |
+            output/rescue-at-the-river-cinematic.mp4
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 14

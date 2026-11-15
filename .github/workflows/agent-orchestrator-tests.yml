@@ -1,0 +1,45 @@
+name: Multi-agent orchestration contract tests
+on:
+  push:
+    branches: [feature/pro-2d-explainer]
+    paths:
+      - 'agent_orchestrator.py'
+      - 'tests/test_agent_orchestrator.py'
+      - 'docs/MULTI_AGENT_ORCHESTRATION.md'
+      - '.github/workflows/agent-orchestrator-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  orchestration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile orchestrator
+        run: python -m py_compile agent_orchestrator.py tests/test_agent_orchestrator.py
+      - name: Run scheduler tests
+        run: python -m unittest discover -s tests -p 'test_agent_orchestrator.py' -v
+      - name: Run scheduler integration demo
+        run: python agent_orchestrator.py --demo --workdir output/agent_jobs
+      - name: Verify shared manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          files=list(Path('output/agent_jobs').glob('*/job_manifest.json'))
+          assert len(files)==1, files
+          data=json.loads(files[0].read_text())
+          assert data['status']=='succeeded'
+          assert len(data['tasks'])==8
+          assert all(t['status']=='succeeded' for t in data['tasks'].values())
+          print('PASS: eight agent tasks synchronized in one shared manifest')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multi-agent-orchestration-manifest
+          path: output/agent_jobs/
+          retention-days: 7

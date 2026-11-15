@@ -1,71 +1,149 @@
-name: Render Hand-Drawn Lion Waterhole Documentary
+name: Render Studio Explainer
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'animal_render.py'
-      - 'wildlife_diagram_render.py'
-      - 'lion_render.py'
-      - 'demo/lion_water_2min.json'
   workflow_dispatch:
     inputs:
       script:
-        description: 'JSON documentary script path'
+        description: Repository-relative .txt script or .json storyboard
         required: true
-        default: 'demo/lion_water_2min.json'
+        default: demo/studio_sample.txt
+        type: string
       output_name:
-        description: 'MP4 file name (without extension)'
+        description: Artifact/video name (letters, numbers, dash, underscore)
         required: true
-        default: 'lion-water-documentary'
+        default: studio-preview
+        type: string
+      style:
+        description: Visual treatment
+        required: true
+        default: cinematic
+        type: choice
+        options:
+          - cinematic
+          - editorial
+          - neon
+          - paper
+          - playful
+      transition:
+        description: Scene transition
+        required: true
+        default: fade
+        type: choice
+        options:
+          - fade
+          - wipe
+          - zoom
+          - cut
+      chapter_every:
+        description: Start a chapter every N scenes when chapters are not specified
+        required: true
+        default: '2'
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  render:
+  render-studio-video:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
+          cache: pip
+
       - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-      - name: Install dependencies
+
+      - name: Install Python dependencies
         run: pip install -r requirements.txt
-      - name: Run renderer regression tests
+
+      - name: Run test suite
         run: python -m unittest discover -s tests -v
-      - name: Render hand-drawn animated lion drinking at a desert waterhole
+
+      - name: Validate inputs
+        env:
+          SCRIPT_PATH: ${{ inputs.script }}
+          OUTPUT_NAME: ${{ inputs.output_name }}
+          CHAPTER_EVERY: ${{ inputs.chapter_every }}
         run: |
-          python lion_render.py --script "${{ inputs.script || 'demo/lion_water_2min.json' }}" --output "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4"
-      - name: Verify MP4 streams and documentary duration
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          script = Path(os.environ["SCRIPT_PATH"])
+          if script.is_absolute() or ".." in script.parts or not script.is_file():
+              raise SystemExit(f"Script must be an existing repository-relative file: {script}")
+          if script.suffix.lower() not in {".txt", ".json"}:
+              raise SystemExit("Script must be a .txt file or a .json storyboard")
+          if not re.fullmatch(r"[A-Za-z0-9_-]{1,60}", os.environ["OUTPUT_NAME"]):
+              raise SystemExit("output_name may contain only letters, numbers, dash, and underscore (up to 60 chars)")
+          try:
+              chapters = int(os.environ["CHAPTER_EVERY"])
+          except ValueError as exc:
+              raise SystemExit("chapter_every must be a positive integer") from exc
+          if chapters < 1:
+              raise SystemExit("chapter_every must be a positive integer")
+          print(f"Rendering {script}")
+          PY
+
+      - name: Render studio explainer
+        env:
+          SCRIPT_PATH: ${{ inputs.script }}
+          OUTPUT_NAME: ${{ inputs.output_name }}
+          STYLE: ${{ inputs.style }}
+          TRANSITION: ${{ inputs.transition }}
+          CHAPTER_EVERY: ${{ inputs.chapter_every }}
         run: |
-          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json "output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4" | tee output/ffprobe.json
+          mkdir -p output
+          python script_to_video.py \
+            --script "$SCRIPT_PATH" \
+            --output "output/${OUTPUT_NAME}.mp4" \
+            --style "$STYLE" \
+            --transition "$TRANSITION" \
+            --chapter-every "$CHAPTER_EVERY" \
+            --storyboard "output/${OUTPUT_NAME}_storyboard.json"
+
+      - name: Verify generated video
+        env:
+          OUTPUT_NAME: ${{ inputs.output_name }}
+        run: |
+          ffprobe -v error \
+            -show_entries stream=codec_type,codec_name,width,height \
+            -show_entries format=duration \
+            -of json "output/${OUTPUT_NAME}.mp4" > output/ffprobe.json
           python - <<'PY'
           import json
           from pathlib import Path
-          report = json.loads(Path("output/render_report.json").read_text())
+
           probe = json.loads(Path("output/ffprobe.json").read_text())
-          streams = probe["streams"]
-          assert any(s["codec_type"] == "video" and s["codec_name"] == "h264" for s in streams), streams
-          assert any(s["codec_type"] == "audio" and s["codec_name"] == "aac" for s in streams), streams
-          assert report["video_seconds"] >= 90, report
-          assert report["video_seconds"] <= 180, report
-          assert report["resolution"] == "1280x720", report
-          print("Verified animated wildlife documentary:", report)
+          streams = probe.get("streams", [])
+          assert any(s.get("codec_type") == "video" and s.get("codec_name") == "h264" for s in streams), streams
+          assert any(s.get("codec_type") == "audio" and s.get("codec_name") == "aac" for s in streams), streams
+          video = next(s for s in streams if s.get("codec_type") == "video")
+          assert (video.get("width"), video.get("height")) == (1280, 720), video
+          report = json.loads(Path("output/render_report.json").read_text())
+          assert report.get("renderer") == "studio-2d", report
+          assert report.get("video_seconds", 0) > 0, report
+          print(json.dumps(report, indent=2))
           PY
-      - name: Upload MP4 and QA reports
+
+      - name: Upload rendered video and preview files
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output_name || 'lion-water-documentary' }}
+          name: ${{ inputs.output_name }}
           path: |
-            output/${{ inputs.output_name || 'lion-water-documentary' }}.mp4
+            output/${{ inputs.output_name }}.mp4
+            output/${{ inputs.output_name }}_storyboard.json
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error
-          retention-days: 5
+          retention-days: 7

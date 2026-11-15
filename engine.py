@@ -381,19 +381,50 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
 
 
 async def synthesize(text, voice, path, rate):
-    """Save speech and collect Edge TTS word-boundary timestamps."""
+    """Try Edge TTS with a hard timeout; fall back to local eSpeak audio."""
     boundaries = []
-    communicate = edge_tts.Communicate(text, voice, rate=rate)
-    with open(path, "wb") as audio:
-        async for chunk in communicate.stream():
-            if chunk.get("type") == "audio":
-                audio.write(chunk["data"])
-            elif chunk.get("type") == "WordBoundary":
-                boundaries.append({
-                    "text": chunk.get("text", ""),
-                    "start": float(chunk.get("offset", 0)) / 10_000_000,
-                    "duration": float(chunk.get("duration", 0)) / 10_000_000,
-                })
+
+    async def collect_edge_audio():
+        communicate = edge_tts.Communicate(text, voice, rate=rate)
+        with open(path, "wb") as audio:
+            async for chunk in communicate.stream():
+                if chunk.get("type") == "audio":
+                    audio.write(chunk["data"])
+                elif chunk.get("type") == "WordBoundary":
+                    boundaries.append({
+                        "text": chunk.get("text", ""),
+                        "start": float(chunk.get("offset", 0)) / 10_000_000,
+                        "duration": float(chunk.get("duration", 0)) / 10_000_000,
+                    })
+
+    try:
+        await asyncio.wait_for(collect_edge_audio(), timeout=35)
+        if path.stat().st_size == 0:
+            raise RuntimeError("Edge TTS returned an empty audio file")
+        return boundaries
+    except Exception as exc:
+        # Never leave a partial MP3 behind after a failed/timeout stream.
+        path.unlink(missing_ok=True)
+        print(f"Edge TTS unavailable ({type(exc).__name__}: {exc}); using local eSpeak fallback.", flush=True)
+
+    text_file = path.with_suffix(".txt")
+    wav_file = path.with_suffix(".wav")
+    text_file.write_text(text, encoding="utf-8")
+    try:
+        subprocess.run(
+            ["espeak-ng", "-v", "en-us", "-s", "155", "-f", str(text_file), "-w", str(wav_file)],
+            check=True, timeout=25, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        )
+        subprocess.run(
+            ["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav_file),
+             "-codec:a", "libmp3lame", "-q:a", "4", str(path)],
+            check=True, timeout=25, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        )
+    finally:
+        text_file.unlink(missing_ok=True)
+        wav_file.unlink(missing_ok=True)
+    if not path.exists() or path.stat().st_size == 0:
+        raise RuntimeError("Both Edge TTS and local eSpeak fallback failed")
     return boundaries
 
 

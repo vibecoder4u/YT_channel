@@ -20,17 +20,16 @@ def make_stage(index, ground_y):
     # Vertical cinematic gradient.
     top = (11, 25, 42)
     bottom = (31, 60, 74)
-    bg = Image.new("RGB", (W, H))
-    pix = bg.load()
+    # Build the gradient as a 1-pixel strip, then scale it in Pillow's C code.
+    # Avoid a Python loop over all 921,600 pixels for every animation frame.
+    gradient = Image.new("RGB", (1, H))
+    rows = []
     for y in range(H):
         q = y / (H - 1)
-        # Slightly brighter around the horizon, darker at the edges.
         v = q ** 1.45
-        c = tuple(round(top[k]*(1-v) + bottom[k]*v) for k in range(3))
-        for x in range(W):
-            edge = abs(x-W/2)/(W/2)
-            shade = 1 - 0.13*edge
-            pix[x,y] = tuple(round(z*shade) for z in c)
+        rows.append(tuple(round(top[k]*(1-v) + bottom[k]*v) for k in range(3)))
+    gradient.putdata(rows)
+    bg = gradient.resize((W, H))
     # Moving atmospheric pools / soft light, composited quietly.
     glow = Image.new("RGBA", (W,H), (0,0,0,0))
     gd = ImageDraw.Draw(glow)

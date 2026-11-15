@@ -43,17 +43,19 @@ jobs:
           delete_artifacts() {
             local url="$1"
             local page=1
+            local all_ids=""
             while :; do
               response=$(curl -fsSL "${headers[@]}" "$url&per_page=100&page=$page")
               count=$(echo "$response" | python -c 'import json,sys; print(len(json.load(sys.stdin).get("artifacts", [])))')
               [ "$count" -eq 0 ] && break
               ids=$(echo "$response" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(str(a["id"]) for a in d.get("artifacts",[]) if not a.get("expired",False)))')
-              for id in $ids; do
-                echo "Deleting artifact $id"
-                curl -fsS -X DELETE "${headers[@]}" "$base/actions/artifacts/$id" >/dev/null
-              done
+              all_ids="$all_ids $ids"
               [ "$count" -lt 100 ] && break
               page=$((page + 1))
+            done
+            for id in $all_ids; do
+              echo "Deleting artifact $id"
+              curl -fsS -X DELETE "${headers[@]}" "$base/actions/artifacts/$id" >/dev/null
             done
           }
           if [ -n "${RUN_ID:-}" ]; then

@@ -1,0 +1,57 @@
+name: Character Studio - Model Sheet
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'character_studio.py'
+      - '.github/workflows/character-studio.yml'
+  workflow_dispatch:
+    inputs:
+      character_name:
+        description: Character name for the model sheet
+        required: true
+        default: Maya
+permissions:
+  contents: read
+jobs:
+  build-character:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install vector rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2
+          pip install Pillow CairoSVG
+      - name: Compile character studio
+        run: python -m py_compile character_studio.py
+      - name: Generate character turnaround
+        run: python character_studio.py --name "${{ inputs.character_name || 'Maya' }}" --out output/character_studio
+      - name: Verify all view masters and preview
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          out=Path('output/character_studio')
+          report=json.loads((out/'character_report.json').read_text())
+          assert report['views']==['front','threequarter','profile','back'], report
+          for view in report['views']:
+              svg=out/f"maya_{view}.svg"
+              png=out/f"maya_{view}.png"
+              assert svg.exists() and '<svg' in svg.read_text()
+              assert Image.open(png).size==(640,900)
+          sheet=Image.open(out/'maya_turnaround.png')
+          assert sheet.size==(1280,1800), sheet.size
+          print('PASS: four SVG view masters and 2x2 PNG turnaround:', report)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: character-studio-model-sheet
+          path: output/character_studio/
+          if-no-files-found: error
+          retention-days: 14

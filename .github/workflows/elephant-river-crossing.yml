@@ -1,0 +1,60 @@
+name: Elephant Documentary - Great River Crossing
+on:
+  push:
+    branches: [feature/rigby2d-character-pipeline]
+    paths:
+      - 'elephant_render.py'
+      - 'demo/great_river_crossing_90s.json'
+      - 'engine.py'
+      - '.github/workflows/elephant-river-crossing.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng
+      - name: Install renderer dependencies
+        run: pip install -r requirements.txt
+      - name: Compile and render original elephant-family documentary
+        run: |
+          python -m py_compile elephant_render.py engine.py
+          python elephant_render.py --script demo/great_river_crossing_90s.json --output output/great-river-crossing.mp4
+      - name: Validate duration, streams and scene coverage
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/great-river-crossing.mp4 | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path("output/ffprobe.json").read_text())
+          video=next(s for s in data["streams"] if s["codec_type"]=="video")
+          audio=next(s for s in data["streams"] if s["codec_type"]=="audio")
+          seconds=float(data["format"]["duration"])
+          report=json.loads(Path("output/render_report.json").read_text())
+          assert report["scenes"]==6
+          assert seconds>=60, f"Documentary too short: {seconds:.1f}s"
+          assert (video["width"],video["height"])==(1280,720)
+          assert video["r_frame_rate"]=="24/1" and video["codec_name"]=="h264"
+          assert audio["codec_name"]=="aac"
+          print(f"PASS: {seconds:.1f}s, 1280x720, 24fps, H.264/AAC, six scenes")
+          PY
+      - name: Upload video, report and QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: great-river-crossing-elephant-documentary
+          path: |
+            output/great-river-crossing.mp4
+            output/render_report.json
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,70 @@
+name: Rigby2D Character Pipeline
+on:
+  push:
+    branches: [feature/rigby2d-character-pipeline]
+    paths:
+      - 'generate_character_assets.py'
+      - 'rigby2d_pipeline.py'
+      - 'assets/rigby2d/hero/**'
+      - 'docs/RIGBY2D_PIPELINE.md'
+      - '.github/workflows/rigby2d-character-pipeline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render-character:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install Pillow CairoSVG
+      - name: Generate original articulated character and action sequences
+        run: python generate_character_assets.py
+      - name: Validate generated action exports
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('assets/rigby2d/hero')
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert manifest['character_name']=='Maya'
+          names=['front_intro','turn_threequarter','turn_profile','walk','stop_momentum','look_back','run','jump','land','front_expression']
+          for name in names:
+              files=sorted((root/name).glob('*.png'))
+              assert len(files)>=8, f'{name}: only {len(files)} frames'
+              from PIL import Image
+              im=Image.open(files[0]).convert('RGBA')
+              assert im.getbbox(), f'{name}: empty first frame'
+              assert im.size==(640,640), f'{name}: unexpected canvas {im.size}'
+              print(f'{name}: {len(files)} frames OK')
+          print('PASS: all ten authored animation sequences generated.')
+          PY
+      - name: Validate adapter
+        run: python -m py_compile generate_character_assets.py rigby2d_pipeline.py
+      - name: Render character action reel
+        run: python rigby2d_pipeline.py --output output/rigby2d-character-test.mp4
+      - name: Validate MP4 properties
+        run: |
+          ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json output/rigby2d-character-test.mp4 > output/probe.json
+          python - <<'PY'
+          import json
+          p=json.load(open('output/probe.json'))
+          s=p['streams'][0]
+          assert (s['width'],s['height'])==(1280,720), s
+          assert s['r_frame_rate']=='30/1', s
+          assert float(p['format']['duration']) >= 12.0, p
+          print('PASS: 1280x720, 30 FPS, 12+ seconds')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maya-character-action-reel
+          path: |
+            output/rigby2d-character-test.mp4
+            output/rigby2d-report.json
+          if-no-files-found: error
+          retention-days: 14

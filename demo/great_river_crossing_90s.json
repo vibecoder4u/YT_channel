@@ -1,0 +1,17 @@
+{
+  "title": "The Great River Crossing: A Calf's Journey Home",
+  "voice": "en-US-GuyNeural",
+  "rate": "-3%",
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "reading_beat": 0.3,
+  "scenes": [
+    {"heading":"The herd reaches the river","caption":"A dangerous crossing lies ahead","duration":10,"animal_action":"approach","narration":"At the edge of the forest, an elephant herd reaches a broad river. The adults pause to study the current, while the youngest calf, Kavi, stays close to his mother. The water is deeper than it appears, and smooth stones hide beneath the surface. For this family, crossing safely means staying together."},
+    {"heading":"Kavi loses his footing","caption":"The current pulls the calf downstream","duration":10,"animal_action":"stumble","narration":"The herd begins to move through the shallows. Kavi follows, lifting each foot carefully, but the riverbed suddenly drops away. Water surges against his small body and pushes him sideways. He struggles to find the bottom, raises his trunk above the surface, and calls out as the current carries him away from the adults."},
+    {"heading":"A mother's call","caption":"The herd turns back to search","duration":10,"animal_action":"search","narration":"On the opposite bank, Kavi's mother hears his call and turns immediately. She answers with a deep rumble that travels across the water. The other elephants gather around her. They spread along the bank, searching the reeds and watching the moving surface, while the mother keeps calling for her calf."},
+    {"heading":"Finding a safer route","caption":"The adults guide the rescue","duration":10,"animal_action":"rescue","narration":"Kavi reaches a shallow bend where the current slows. His mother enters the water with another adult beside her. They approach carefully, keeping their bodies between the calf and the strongest flow. Kavi reaches toward them with his trunk. The adults guide him toward firmer ground, one steady step at a time."},
+    {"heading":"Back beside the herd","caption":"The family reunites on the riverbank","duration":10,"animal_action":"reunite","narration":"At last, Kavi's feet find the gravel bank. His mother stays close, touching his head and shoulder with her trunk. The calf leans against her while water streams from his skin. The herd gathers around them, forming a protective group before continuing along the river's edge."},
+    {"heading":"A lesson carried forward","caption":"Together, the herd moves on","duration":10,"animal_action":"depart","narration":"The crossing has tested the youngest member of the herd, but the family has stayed alert and responded together. Young elephants learn by following experienced adults, and safe routes are remembered over time. Kavi walks beside his mother now, no longer separated by the river, as the herd disappears into the green forest."}
+  ]
+}

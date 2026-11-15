@@ -381,20 +381,38 @@ def make_frame(scene, frame, frames, size, scene_number, scene_count, title):
 
 
 async def synthesize(text, voice, path, rate):
-    """Save speech and collect Edge TTS word-boundary timestamps."""
+    """Use Edge TTS, with a local speech fallback when the network voice fails."""
     boundaries = []
-    communicate = edge_tts.Communicate(text, voice, rate=rate)
-    with open(path, "wb") as audio:
-        async for chunk in communicate.stream():
-            if chunk.get("type") == "audio":
-                audio.write(chunk["data"])
-            elif chunk.get("type") == "WordBoundary":
-                boundaries.append({
-                    "text": chunk.get("text", ""),
-                    "start": float(chunk.get("offset", 0)) / 10_000_000,
-                    "duration": float(chunk.get("duration", 0)) / 10_000_000,
-                })
-    return boundaries
+    try:
+        communicate = edge_tts.Communicate(text, voice, rate=rate)
+        with open(path, "wb") as audio:
+            async for chunk in communicate.stream():
+                if chunk.get("type") == "audio":
+                    audio.write(chunk["data"])
+                elif chunk.get("type") == "WordBoundary":
+                    boundaries.append({
+                        "text": chunk.get("text", ""),
+                        "start": float(chunk.get("offset", 0)) / 10_000_000,
+                        "duration": float(chunk.get("duration", 0)) / 10_000_000,
+                    })
+        if Path(path).stat().st_size > 1024:
+            return boundaries
+        raise RuntimeError("Edge TTS returned an empty audio stream")
+    except Exception as exc:
+        print(f"Edge TTS unavailable ({exc}); using local espeak-ng fallback.")
+        wav = str(Path(path).with_suffix(".fallback.wav"))
+        try:
+            subprocess.run(["espeak-ng", "-s", "148", "-w", wav, text],
+                           check=True, capture_output=True, text=True)
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav,
+                            "-codec:a", "libmp3lame", "-q:a", "4", str(path)],
+                           check=True, capture_output=True, text=True)
+        finally:
+            if os.path.exists(wav):
+                os.remove(wav)
+        if not Path(path).exists() or Path(path).stat().st_size <= 1024:
+            raise RuntimeError("Both Edge TTS and local speech fallback failed")
+        return []
 
 
 def build_caption_cues(boundaries, narration, duration):

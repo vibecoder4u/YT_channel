@@ -1,0 +1,65 @@
+name: Script-Directed 60s Wildlife Documentary Prototype
+
+on:
+  push:
+    branches: [feature/rigby2d-character-pipeline]
+    paths:
+      - 'documentary_director.py'
+      - 'demo/lion_dry_season_60s.json'
+      - 'lion_render_v2.py'
+      - 'engine.py'
+      - '.github/workflows/documentary-director-60s.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Install renderer dependencies
+        run: pip install -r requirements.txt
+      - name: Validate director and render script-driven documentary
+        run: |
+          python -m py_compile documentary_director.py lion_render_v2.py engine.py
+          python documentary_director.py --script demo/lion_dry_season_60s.json --output output/dry-season-documentary-60s.mp4
+      - name: Validate final MP4 and director plan
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/dry-season-documentary-60s.mp4 | tee output/ffprobe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("output/ffprobe.json").read_text())
+          v=next(s for s in d["streams"] if s["codec_type"]=="video")
+          a=next(s for s in d["streams"] if s["codec_type"]=="audio")
+          seconds=float(d["format"]["duration"])
+          plan=json.loads(Path("output/director_plan.json").read_text())
+          assert len(plan["shots"])==6
+          assert len({s["shot_type"] for s in plan["shots"]})>=5
+          assert seconds>=60, f"Too short: {seconds:.2f}s"
+          assert v["codec_name"]=="h264" and (v["width"],v["height"])==(1280,720)
+          assert v["r_frame_rate"]=="24/1" and a["codec_name"]=="aac"
+          print(f"PASS: {seconds:.2f}s, 1280x720, 24fps, H.264/AAC; {len(plan['shots'])} directed shots")
+          PY
+      - name: Upload documentary, shot plan and QA
+        uses: actions/upload-artifact@v4
+        with:
+          name: script-directed-dry-season-documentary
+          path: |
+            output/dry-season-documentary-60s.mp4
+            output/director_plan.json
+            output/render_report.json
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 7

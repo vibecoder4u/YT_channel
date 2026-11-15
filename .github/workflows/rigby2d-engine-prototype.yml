@@ -1,0 +1,146 @@
+name: Rigby2D Skeletal Animation Engine Prototype
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/rigby2d-character-pipeline
+    paths:
+      - "animation_engine/**"
+      - ".github/workflows/rigby2d-engine-prototype.yml"
+      - "docs/RIGBY2D_ENGINE.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rigby2d-engine-prototype
+  cancel-in-progress: true
+
+jobs:
+  render-skeletal-character:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout channel repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ""
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg and Python artwork dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install cairosvg pillow
+
+      - name: Fetch pinned Rigby2D engine source
+        run: |
+          mkdir -p vendor
+          git clone --filter=blob:none https://github.com/jaisurya-dev-art/rigby2d.git vendor/rigby2d
+          git -C vendor/rigby2d checkout cbc19079c5dd499c70f9b0e69fc04265f0346dc4
+          test "$(git -C vendor/rigby2d rev-parse HEAD)" = "cbc19079c5dd499c70f9b0e69fc04265f0346dc4"
+          node --version
+          node -p "require('./vendor/rigby2d/package.json').version"
+
+      - name: Install Rigby2D CLI and headless renderer
+        working-directory: vendor/rigby2d
+        run: |
+          npm ci
+          npx playwright install chromium --with-deps
+
+      - name: Generate original layered character artwork
+        run: |
+          python animation_engine/generate_character_art.py
+          test -s build/character-art/layers.json
+
+      - name: Import artwork, AutoRig and author skeletal motion
+        run: |
+          node animation_engine/build_character_project.mjs
+          test -s build/maya-character.rigby
+          test -s build/rig-report.json
+          test -s build/animation-report.json
+
+      - name: Render from the actual Rigby2D skeletal project
+        run: |
+          node vendor/rigby2d/bin/rigby.js render build/maya-character.rigby \
+            --animation character_showcase \
+            --out build/rigby-frames/ \
+            --format png \
+            --engine chromium \
+            --allow-software \
+            --fps 30 --width 1280 --height 720 \
+            --background none \
+            --quality high --force --json
+          test "$(find build/rigby-frames -maxdepth 1 -name '*.png' | wc -l)" -ge 300
+
+      - name: Encode MP4 and build storyboard
+        run: |
+          python animation_engine/encode_reel.py \
+            build/rigby-frames \
+            build/maya-character-animation-engine-test.mp4 \
+            build/maya-animation-contact-sheet.png
+          ffprobe -v error -show_streams -show_format -of json \
+            build/maya-character-animation-engine-test.mp4 > build/video-probe.json
+
+      - name: Validate rig, motion channels and video
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rig = json.loads(Path("build/rig-report.json").read_text())
+          anim = json.loads(Path("build/animation-report.json").read_text())
+          controls = json.loads(Path("build/rig-controls-report.json").read_text())
+          probe = json.loads(Path("build/video-probe.json").read_text())
+          names = {b["name"] for b in rig.get("bones", [])}
+          assert sorted(controls.get("removed_arm_ik", [])) == ["ik_hand_l", "ik_hand_r"], controls
+          assert sorted(controls.get("remaining_ik", [])) == ["ik_foot_l", "ik_foot_r"], controls
+          required = {"hip", "chest", "head", "thigh_l", "shin_l", "thigh_r", "shin_r", "ik_foot_l", "ik_foot_r"}
+          missing = sorted(required - names)
+          if missing:
+              raise SystemExit("Rig is missing expected skeletal controls: " + ", ".join(missing))
+          if anim.get("duration", 0) < 12:
+              raise SystemExit("Animation timeline is shorter than 12 seconds")
+          if len(anim.get("bones", [])) < 8:
+              raise SystemExit("Too few animated bone timelines")
+          streams = [s for s in probe.get("streams", []) if s.get("codec_type") == "video"]
+          if not streams:
+              raise SystemExit("MP4 has no video stream")
+          video = streams[0]
+          if video.get("width") != 1280 or video.get("height") != 720:
+              raise SystemExit("Unexpected video dimensions")
+          if video.get("avg_frame_rate") != "30/1":
+              raise SystemExit("Unexpected frame rate: " + str(video.get("avg_frame_rate")))
+          if float(probe.get("format", {}).get("duration", 0)) < 11.5:
+              raise SystemExit("Rendered MP4 is unexpectedly short")
+          print("Rig bones:", len(names), "slots:", len(rig.get("slots", [])))
+          print("Animation duration:", anim["duration"], "animated timelines:", len(anim.get("bones", [])))
+          print("Video:", video["width"], "x", video["height"], video["avg_frame_rate"], probe["format"]["duration"], "seconds")
+          PY
+
+      - name: Upload skeletal engine prototype
+        uses: actions/upload-artifact@v4
+        with:
+          name: maya-rigby2d-skeletal-engine-test
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build/maya-character-animation-engine-test.mp4
+            build/maya-animation-contact-sheet.png
+            build/maya-character.rigby
+            build/maya-rigged-character.psd
+            build/rig-report.json
+            build/rig-controls-report.json
+            build/animation-report.json
+            build/rig-validation.json
+            build/video-probe.json
+            build/animation-operations.json

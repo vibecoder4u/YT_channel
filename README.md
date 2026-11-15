@@ -1,43 +1,40 @@
-# Illustrated Stickman Educational Video Engine
+# YT_channel: script-to-video animation engine
 
-A script-driven 2D educational renderer. It creates original stickman presenters, animated diagrams, timelines, process flows, comparison panels, and captions—without stock footage or manually supplied scene images.
+Turn a plain-text script or a topic outline into a narrated 2D explainer. The renderer uses procedural illustrations, animated diagrams, a presenter, captions, chapter cards, scene transitions, and configurable visual treatments. It uses Edge TTS for speech and FFmpeg for video; install FFmpeg separately and ensure it is available on `PATH`.
 
-## Long-form improvements
-- **Narration-driven scene timing:** each scene length is measured from its generated voiceover, not a fixed timer.
-- **Synchronized transitions:** a matching audio reading beat is inserted after each scene, preventing cumulative visual/audio drift.
-- **Continuous motion:** presenter breathing, blinking and changing gestures; highlighted flow steps; animated timeline markers; staggered chart-bar reveals.
-- **Educational visual vocabulary:** process flows, networks, cycles, timelines, comparisons, concept panels, and simple data charts.
-- **Render QA:** automated tests check story structure and verify that frames change during a long scene. The Actions workflow checks H.264 video, AAC audio, and a minimum 4.5-minute output.
-
-## Five-minute demo
-The included `demo/story_5min.json` is a 17-scene educational explainer, 17-scene, 635-word explainer written for approximately five minutes of narration.
-
-### GitHub Actions render
-1. Open the repository's **Actions** tab.
-2. Select **Render Educational Stickman Video**.
-3. Click **Run workflow**.
-4. Keep the default script `demo/story_5min.json` and output name `educational-5min`.
-5. When the run completes, download the artifact named `educational-5min`. It contains the MP4 and QA reports.
-
-Workflow: https://github.com/vibecoder4u/YT_channel/actions/workflows/render.yml
-
-## Run locally
-Requires Python 3.10+, FFmpeg, and network access for Edge TTS voice generation.
+## Quick start
 
 ```bash
 pip install -r requirements.txt
 python -m unittest discover -s tests -v
-python engine.py --script demo/story_5min.json --output output/educational-5min.mp4
+python script_to_video.py --script my_script.txt --output output/my_video.mp4
 ```
 
-## Script fields
-Each scene supports:
-- `narration`: spoken explanation; rendered duration follows the generated audio.
-- `heading`, `caption`, `takeaway`: on-screen teaching hierarchy.
-- `visual`: `concept`, `flow`, `process`, `network`, `timeline`, `compare`, `cycle`, or `stat`.
-- `items` and optional `values`: labels/data for the selected visual.
-- `action`: presenter pose such as `explain`, `point`, `think`, `walk`, or `celebrate`.
-- `accent`: scene color.
+Separate script sections with blank lines. Without blank lines, sentences are grouped into scenes. Structured JSON storyboards remain supported.
 
-## Honest scope
-This is a procedural 2D illustrated foundation, not a finished studio-grade character-animation package. Motion is code-driven and intentionally lightweight; it is not skeletal character rigging or phoneme-level lip-sync. The workflow has been configured with automated checks, but a successful GitHub-hosted render is only confirmed after an Actions run completes.
+## Studio options
+
+```bash
+python script_to_video.py \
+  --script my_script.txt \
+  --output output/my_video.mp4 \
+  --style cinematic \
+  --transition wipe \
+  --transition-seconds 0.6 \
+  --chapter-every 2 \
+  --storyboard output/storyboard.json
+```
+
+Styles: `cinematic`, `editorial`, `neon`, `paper`, `playful`. Transitions: `fade`, `wipe`, `zoom`, `cut`. Explicit `chapter` labels in a JSON scene are respected; otherwise a chapter is started every two scenes by default. Chapter boundaries and render details are saved to `output/render_report.json`.
+
+## Topic outline mode
+
+```bash
+python script_to_video.py --topic "How do solar panels work?" --output output/solar.mp4
+```
+
+Topic mode generates a structured research outline with hook, definition, mechanism, comparison, evidence, and takeaway scenes. It intentionally inserts prompts for research rather than inventing facts or presenting generic claims as factual narration. Review and replace those prompts with sourced narration before publishing. Use `--storyboard` to save and edit the outline.
+
+## Narration and scope
+
+Narration is synthesized with the selected Edge TTS voice (`--voice en-US-AriaNeural`). Visual timing follows generated speech, with a configurable reading beat between scenes. This is a procedural 2D illustration system: visual style selection and icon drawing are local heuristics, not AI-generated images or a full 3D/rigged-character package.

@@ -38,3 +38,10 @@ Topic mode generates a structured research outline with hook, definition, mechan
 ## Narration and scope
 
 Narration is synthesized with the selected Edge TTS voice (`--voice en-US-AriaNeural`). Visual timing follows generated speech, with a configurable reading beat between scenes. This is a procedural 2D illustration system: visual style selection and icon drawing are local heuristics, not AI-generated images or a full 3D/rigged-character package.
+
+
+## Multi-agent production orchestration
+
+A dependency-aware coordinator is available in `agent_orchestrator.py`. It synchronizes the Director, Shot Planner, Character Factory, Asset Factory, Camera Director, Animation, Quality and Composer roles through one atomic job manifest. Independent stages can run concurrently; downstream stages wait for their required outputs.
+
+See [docs/MULTI_AGENT_ORCHESTRATION.md](docs/MULTI_AGENT_ORCHESTRATION.md) for the worker contract and current integration boundary. The scheduler demo validates synchronization only; role-specific AI workers and production rendering integrations are still being connected.

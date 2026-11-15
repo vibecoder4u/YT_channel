@@ -1,0 +1,140 @@
+name: Rigby2D Skeletal Animation Engine Prototype
+
+on:
+  push:
+    branches: [feature/rigby2d-character-pipeline]
+    paths:
+      - 'animation_engine/**'
+      - 'docs/RIGBY2D_ENGINE.md'
+      - '.github/workflows/rigby2d-skeletal-engine.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rig-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install video tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Fetch pinned Rigby2D skeletal animation engine
+        env:
+          RIGBY2D_COMMIT: cbc19079c5dd499c70f9b0e69fc04265f0346dc4
+        run: |
+          mkdir -p vendor/rigby2d
+          git -C vendor/rigby2d init
+          git -C vendor/rigby2d remote add origin https://github.com/jaisurya-dev-art/rigby2d.git
+          git -C vendor/rigby2d fetch --depth 1 origin "$RIGBY2D_COMMIT"
+          git -C vendor/rigby2d checkout --detach FETCH_HEAD
+          test "$(git -C vendor/rigby2d rev-parse HEAD)" = "$RIGBY2D_COMMIT"
+
+      - name: Install Rigby2D CLI and Chromium renderer
+        run: |
+          npm ci --prefix vendor/rigby2d
+          cd vendor/rigby2d
+          npx playwright install --with-deps chromium
+          node bin/rigby.js --help
+
+      - name: Install original artwork dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install Pillow CairoSVG
+
+      - name: Generate layered original character artwork
+        run: python animation_engine/generate_character_art.py
+
+      - name: Build PSD, AutoRig the character and author skeletal motion
+        run: node animation_engine/build_character_project.mjs
+
+      - name: Validate rig and animation data
+        run: |
+          node vendor/rigby2d/bin/rigby.js validate build/maya-character.rigby --json > build/cli-validation.json
+          node vendor/rigby2d/bin/rigby.js rig build/maya-character.rigby --json > build/cli-rig.json
+          node vendor/rigby2d/bin/rigby.js animation build/maya-character.rigby character_showcase --json > build/cli-animation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          v=json.loads(Path('build/cli-validation.json').read_text())
+          rig=json.loads(Path('build/cli-rig.json').read_text())
+          anim=json.loads(Path('build/cli-animation.json').read_text())
+          assert v.get('valid') is True, v
+          assert len(rig.get('bones', [])) >= 12, f"Too few bones: {len(rig.get('bones', []))}"
+          assert len(rig.get('slots', [])) >= 18, f"Too few drawable parts: {len(rig.get('slots', []))}"
+          assert anim.get('duration', 0) >= 12.0, anim.get('duration')
+          keyed=[x for x in anim.get('bones', []) if any(x.get('keys', {}).values())]
+          assert len(keyed) >= 8, f"Too few animated bone timelines: {len(keyed)}"
+          print(f"RIG PASS: {len(rig['bones'])} bones, {len(rig['slots'])} slots")
+          print(f"ANIMATION PASS: {anim['duration']}s, {len(keyed)} keyed bone timelines")
+          PY
+
+      - name: Render evaluated skeletal frames in Rigby2D
+        run: |
+          mkdir -p build/rigby-frames output
+          node vendor/rigby2d/bin/rigby.js render build/maya-character.rigby \
+            --animation character_showcase \
+            --out build/rigby-frames/ \
+            --format png \
+            --engine chromium \
+            --allow-software \
+            --fps 30 --width 1280 --height 720 \
+            --background '#152638' --force
+
+      - name: Encode review reel and contact sheet
+        run: |
+          python animation_engine/encode_reel.py \
+            build/rigby-frames \
+            output/maya-rigby2d-skeletal-engine-test.mp4 \
+            output/maya-rigby2d-contact-sheet.png
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=codec_name,width,height,r_frame_rate \
+            -show_entries format=duration \
+            -of json output/maya-rigby2d-skeletal-engine-test.mp4 > output/video-probe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('output/video-probe.json').read_text())
+          s=p['streams'][0]
+          d=float(p['format']['duration'])
+          assert (s['width'],s['height'])==(1280,720), s
+          assert s['r_frame_rate']=='30/1', s
+          assert d >= 12.0, d
+          assert Path('output/maya-rigby2d-contact-sheet.png').stat().st_size > 10000
+          print(f"VIDEO PASS: {d:.2f}s, {s['width']}x{s['height']} at {s['r_frame_rate']}")
+          PY
+
+      - name: Upload editable rig, artwork and rendered review
+        uses: actions/upload-artifact@v4
+        with:
+          name: maya-rigby2d-skeletal-animation-engine
+          path: |
+            output/maya-rigby2d-skeletal-engine-test.mp4
+            output/maya-rigby2d-contact-sheet.png
+            output/video-probe.json
+            build/maya-character.rigby
+            build/maya-rigged-character.psd
+            build/rig-report.json
+            build/rig-validation.json
+            build/animation-report.json
+            build/cli-validation.json
+            build/cli-rig.json
+            build/cli-animation.json
+            build/character-art/
+          if-no-files-found: error
+          retention-days: 14

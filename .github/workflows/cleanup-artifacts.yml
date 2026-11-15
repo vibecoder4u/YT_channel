@@ -1,40 +1,66 @@
-name: Delete downloaded run artifacts
+name: Clean all workflow artifacts
 on:
+  schedule:
+    # Run daily; the UTC epoch-day guard below makes cleanup occur every 5 days.
+    - cron: "17 3 * * *"
   workflow_dispatch:
     inputs:
       run_id:
-        description: GitHub Actions run ID whose artifacts you have already downloaded
-        required: true
+        description: Optional run ID. Leave blank to clean artifacts from all runs.
+        required: false
         type: string
 permissions:
   actions: write
 jobs:
-  delete-artifacts:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate run ID
+      - name: Validate optional run ID
         env:
           RUN_ID: ${{ inputs.run_id }}
         run: |
-          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
+          if [ -n "${RUN_ID:-}" ] && ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
             echo "run_id must contain digits only"
             exit 1
           fi
-      - name: Delete artifacts but preserve run logs
+      - name: Run cleanup every five days
+        if: github.event_name == 'schedule'
+        run: |
+          day_number=$(( $(date -u +%s) / 86400 ))
+          if (( day_number % 5 != 0 )); then
+            echo "Not a five-day cleanup day; skipping."
+            exit 0
+          fi
+          echo "Five-day cleanup day."
+      - name: Delete artifacts for the selected run or all runs
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPOSITORY: ${{ github.repository }}
           RUN_ID: ${{ inputs.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          response=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GH_REPOSITORY/actions/runs/$RUN_ID/artifacts")
-          ids=$(echo "$response" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(str(a["id"]) for a in d.get("artifacts",[]) if not a.get("expired",False)))')
-          if [ -z "$ids" ]; then
-            echo "No active artifacts found for run $RUN_ID"
-            exit 0
+          base="https://api.github.com/repos/$GH_REPOSITORY"
+          headers=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
+          delete_artifacts() {
+            local url="$1"
+            local page=1
+            while :; do
+              response=$(curl -fsSL "${headers[@]}" "$url&per_page=100&page=$page")
+              count=$(echo "$response" | python -c 'import json,sys; print(len(json.load(sys.stdin).get("artifacts", [])))')
+              [ "$count" -eq 0 ] && break
+              ids=$(echo "$response" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(str(a["id"]) for a in d.get("artifacts",[]) if not a.get("expired",False)))')
+              for id in $ids; do
+                echo "Deleting artifact $id"
+                curl -fsS -X DELETE "${headers[@]}" "$base/actions/artifacts/$id" >/dev/null
+              done
+              [ "$count" -lt 100 ] && break
+              page=$((page + 1))
+            done
+          }
+          if [ -n "${RUN_ID:-}" ]; then
+            delete_artifacts "$base/actions/runs/$RUN_ID/artifacts?"
+          else
+            delete_artifacts "$base/actions/artifacts?"
           fi
-          for id in $ids; do
-            echo "Deleting artifact $id"
-            curl -fsSL -X DELETE -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$GH_REPOSITORY/actions/artifacts/$id"
-          done
-          echo "Deleted all active artifacts for run $RUN_ID. Workflow run and logs are preserved."
+          echo "Artifact cleanup complete. Workflow run logs and history are preserved."

@@ -68,7 +68,9 @@ cli(['import-psd', PSD, '--out', RAW, '--force', '--json'], 'Rigby2D PSD import'
 cli(['autorig', RAW, '--out', RIG, '--meshes', 'deforming', '--force', '--json'], 'Rigby2D AutoRig');
 const prep = spawnSync('python', ['animation_engine/prepare_rig.py', RIG], { cwd: ROOT, encoding: 'utf8' });
 if (prep.status !== 0) throw new Error('Rig preparation failed: ' + prep.stderr + prep.stdout);
-console.log(prep.stdout.trim());
+const rigControls = parseJson(prep.stdout.trim(), 'Rig preparation');
+await fs.writeFile(path.join(BUILD, 'rig-controls-report.json'), JSON.stringify(rigControls, null, 2));
+console.log(JSON.stringify(rigControls));
 
 cli(['call', 'set_workspace', '--path', RIG, '--workspace', 'film', '--json'], 'Film workspace setup');
 cli(['call', 'set_output', '--path', RIG, '--fps', '30', '--width', '1280', '--height', '720',

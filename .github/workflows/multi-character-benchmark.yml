@@ -1,0 +1,80 @@
+name: Dog Bird Human Multi-Character Benchmark
+on:
+  push:
+    branches: [feature/pro-2d-explainer]
+    paths:
+      - 'multi_character_test.py'
+      - '.github/workflows/multi-character-benchmark.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: multi-character-benchmark
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python -m pip install --upgrade pip
+          python -m pip install pillow
+      - name: Compile and render the three-anatomy benchmark
+        run: |
+          python -m py_compile multi_character_test.py
+          python multi_character_test.py --out build/multi-character --fps 24 --duration 12
+      - name: Verify distinct anatomy systems and video
+        run: |
+          ffprobe -v error -show_streams -show_format -of json build/multi-character/dog_bird_human_benchmark.mp4 > build/multi-character/video-probe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('build/multi-character')
+          report=json.loads((p/'benchmark.json').read_text())
+          probe=json.loads((p/'video-probe.json').read_text())
+          assert report['frame_count']==288, report
+          assert report['fps']==24 and report['duration_seconds']==12
+          chars={c['species']:c for c in report['characters']}
+          assert set(chars)=={'dog','bird','human'}
+          assert chars['dog']['anatomy']=='quadruped'
+          assert chars['bird']['anatomy']=='avian'
+          assert chars['human']['anatomy']=='biped'
+          assert len(report['shots'])==3
+          v=[s for s in probe['streams'] if s['codec_type']=='video'][0]
+          assert (v['width'],v['height'])==(1280,720), v
+          assert v['avg_frame_rate']=='24/1', v
+          assert float(probe['format']['duration'])>=11.8
+          frames=sorted((p/'frames').glob('*.png'))
+          assert len(frames)==288, len(frames)
+          from PIL import Image, ImageDraw
+          picks=[frames[i] for i in (0,47,95,143,191,239,287)]
+          thumb=Image.new('RGB',(1280,7*145),(245,242,231))
+          d=ImageDraw.Draw(thumb)
+          for i,f in enumerate(picks):
+              im=Image.open(f).convert('RGB'); im.thumbnail((512,128))
+              thumb.paste(im,(0,i*145))
+              d.text((530,i*145+20),f.stem,fill=(25,35,35))
+          thumb.save(p/'contact-sheet.jpg',quality=88)
+          print('PASS: three anatomy profiles, 288 frames, 24 fps, 1280x720, 3 shot phases')
+          print('Dog:',chars['dog']['motion'])
+          print('Bird:',chars['bird']['motion'])
+          print('Human:',chars['human']['motion'])
+          PY
+      - name: Upload benchmark video and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dog-bird-human-animation-benchmark
+          path: |
+            build/multi-character/dog_bird_human_benchmark.mp4
+            build/multi-character/contact-sheet.jpg
+            build/multi-character/benchmark.json
+            build/multi-character/video-probe.json
+          if-no-files-found: error
+          retention-days: 14

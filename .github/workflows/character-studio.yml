@@ -37,15 +37,17 @@ jobs:
           import json
           from pathlib import Path
           from PIL import Image
+          import re
           out=Path('output/character_studio')
           report=json.loads((out/'character_report.json').read_text())
+          slug=re.sub(r'[^a-z0-9_-]+','_',report['character'].lower()).strip('_')
           assert report['views']==['front','threequarter','profile','back'], report
           for view in report['views']:
-              svg=out/f"maya_{view}.svg"
-              png=out/f"maya_{view}.png"
+              svg=out/f"{slug}_{view}.svg"
+              png=out/f"{slug}_{view}.png"
               assert svg.exists() and '<svg' in svg.read_text()
               assert Image.open(png).size==(640,900)
-          sheet=Image.open(out/'maya_turnaround.png')
+          sheet=Image.open(out/f'{slug}_turnaround.png')
           assert sheet.size==(1280,1800), sheet.size
           print('PASS: four SVG view masters and 2x2 PNG turnaround:', report)
           PY

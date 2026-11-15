@@ -126,6 +126,7 @@ class Orchestrator:
             for attempt in range(self.retries + 1):
                 manifest.event(task.id, "running", role=task.role, attempt=attempt+1)
                 try:
+                    out_path.unlink(missing_ok=True)
                     result = self.agents[task.role].run(ctx_path, out_path)
                     return result, str(out_path), attempt+1
                 except Exception as exc:

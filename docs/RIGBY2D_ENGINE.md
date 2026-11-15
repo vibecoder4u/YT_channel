@@ -5,7 +5,7 @@ This is the new character-animation engine lane. It replaces the old PNG-pose ge
 ## Architecture
 
 1. **Original layered character artwork** — animation_engine/generate_character_art.py draws an original expedition character as separate transparent body-part images. The PSD preserves the layers and their positions.
-2. **Real character rig** — the build imports that PSD into Rigby2D and runs AutoRig. The resulting .rigby project contains an editable skeleton, weighted deforming meshes and IK chains for the limbs.
+2. **Real character rig** — the build imports that PSD into Rigby2D and runs AutoRig. The resulting .rigby project contains an editable skeleton and weighted deforming meshes. We remove AutoRig's fixed hand-target IK constraints so keyed shoulder/elbow arcs can animate freely, while retaining the two foot IK constraints for grounded locomotion. The workflow records and validates these controls.
 3. **Motion authoring** — animation_engine/build_character_project.mjs creates one 12.2-second timeline with bone keyframes, foot-target keys, ease/settle beats and explicit front / three-quarter / profile / look-back artwork swaps.
 4. **Native skeletal render** — the pinned Rigby2D CLI evaluates the .rigby animation and renders a PNG sequence through its editor renderer in headless Chromium. FFmpeg only encodes those evaluated frames to H.264; it does not animate or move the character.
 5. **Validation and review** — CI checks rig controls, animation duration/keyed channels, frame count, output dimensions and frame rate. The storyboard contact sheet and the .rigby source are included in the artifact so the actual rig can be inspected.
@@ -24,7 +24,7 @@ Rigby2D is an open-source 2D skeletal-animation tool. Its own documentation desc
 
 ## Character and motion test
 
-The current Maya asset is a pipeline test character, not final production character art. The action reel is designed to test:
+The current Maya asset is a pipeline test character, not final production character art. The second engineering pass also adds a compositing stage, with a perspective floor and contact shadow that stays on the ground while the character jumps. The action reel is designed to test:
 
 - front introduction and breathing;
 - switch to a separately drawn three-quarter head;

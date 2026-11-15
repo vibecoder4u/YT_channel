@@ -16,20 +16,42 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Check for authored Rigby2D exports
+        id: preflight
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          root=Path('assets/rigby2d/hero')
+          names=['front_intro','turn_threequarter','turn_profile','walk','stop_momentum','look_back','run','jump','land','front_expression']
+          missing=[]
+          if not (root/'manifest.json').exists(): missing.append('manifest.json')
+          for name in names:
+              files=list((root/name).glob('*.png')) if (root/name).exists() else []
+              if len(files)<8: missing.append(f'{name}: {len(files)} PNG frames (need 8+)')
+          ready=not missing
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f'ready={str(ready).lower()}\\n')
+          if not ready:
+              print('WAITING FOR RIGBY2D AUTHORING EXPORTS:')
+              print('\\n'.join(missing))
+              print('See docs/RIGBY2D_PIPELINE.md. No synthetic stick-figure substitute will be rendered.')
+          else: print('All Rigby2D action exports are present.')
+          PY
       - name: Install FFmpeg and Pillow
+        if: steps.preflight.outputs.ready == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
           pip install Pillow
       - name: Validate adapter
+        if: steps.preflight.outputs.ready == 'true'
         run: python -m py_compile rigby2d_pipeline.py
       - name: Render Rigby2D character action reel
+        if: steps.preflight.outputs.ready == 'true'
         run: python rigby2d_pipeline.py --output output/rigby2d-character-test.mp4
       - name: Validate MP4 properties
+        if: steps.preflight.outputs.ready == 'true'
         run: |
           ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_rate -show_entries format=duration -of json output/rigby2d-character-test.mp4 > output/probe.json
           python - <<'PY'
@@ -42,6 +64,7 @@ jobs:
           print('PASS: 1280x720, 30 FPS, 12+ seconds')
           PY
       - uses: actions/upload-artifact@v4
+        if: steps.preflight.outputs.ready == 'true'
         with:
           name: rigby2d-character-action-reel
           path: |

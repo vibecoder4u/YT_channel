@@ -1,0 +1,46 @@
+name: Render professional 2D explainer pilot
+on:
+  push:
+    branches: [feature/pro-2d-explainer]
+    paths:
+      - 'pro_2d_pilot.py'
+      - '.github/workflows/pro-2d-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install renderer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          pip install pillow cairosvg
+      - name: Render 30-second 2D cartoon pilot
+        run: python pro_2d_pilot.py --output output/brain-sleep-30s.mp4
+      - name: Verify video
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          p=json.load(open('output/qa.json'))
+          streams=p['streams']
+          v=next(s for s in streams if s.get('width'))
+          d=float(p['format']['duration'])
+          assert v['width']==1920 and v['height']==1080, v
+          assert v['r_frame_rate']=='24/1', v
+          assert 29.8 <= d <= 30.2, d
+          print('PASS: 1080p, 24fps, 30 seconds')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: professional-2d-brain-sleep-pilot
+          path: |
+            output/brain-sleep-30s.mp4
+            output/qa.json
+          retention-days: 14

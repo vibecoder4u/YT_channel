@@ -1,34 +1,26 @@
 import unittest
 
-from script_to_story import script_to_story, split_into_scenes
+from script_to_story import generate_explainer_story, script_to_story
 
 
-class ScriptToStoryTests(unittest.TestCase):
-    def test_blank_lines_are_scene_breaks_and_sentences_group(self):
-        script = "First sentence. Second sentence. Third sentence. Fourth sentence.\n\nAnother scene."
-        self.assertEqual(split_into_scenes(script), [
-            "First sentence. Second sentence. Third sentence.",
-            "Fourth sentence.",
-            "Another scene.",
-        ])
+class StudioStoryTests(unittest.TestCase):
+    def test_script_scenes_receive_chapter_labels(self):
+        story = script_to_story("First. Second. Third. Fourth. Fifth.", max_sentences=1)
+        self.assertEqual(len(story["scenes"]), 5)
+        self.assertEqual(story["scenes"][0]["chapter"], "Chapter 1")
+        self.assertEqual(story["scenes"][2]["chapter"], "Chapter 2")
 
-    def test_plain_script_generates_renderer_compatible_scenes(self):
-        story = script_to_story("First, the signal reaches a router. Then, it travels to the server.")
-        self.assertEqual(story["title"], "A Story, Illustrated")
-        self.assertEqual(len(story["scenes"]), 1)
-        scene = story["scenes"][0]
-        for field in ("heading", "caption", "narration", "visual", "items", "action", "accent"):
-            self.assertIn(field, scene)
-        self.assertEqual(scene["visual"], "network")
+    def test_topic_mode_generates_research_outline_not_fabricated_facts(self):
+        story = generate_explainer_story("How do solar panels work?")
+        self.assertEqual(len(story["scenes"]), 6)
+        narration = " ".join(scene["narration"] for scene in story["scenes"])
+        self.assertIn("sourced statistic", narration)
+        self.assertEqual(story["scenes"][2]["visual"], "flow")
+        self.assertEqual(story["scenes"][3]["visual"], "compare")
 
-    def test_compare_scene_gets_two_comparison_labels(self):
-        story = script_to_story("Before, the process was slow. After, it became faster.")
-        self.assertEqual(story["scenes"][0]["visual"], "compare")
-        self.assertEqual(story["scenes"][0]["items"], ["Before", "After"])
-
-    def test_empty_script_is_rejected(self):
+    def test_empty_topic_fails_clearly(self):
         with self.assertRaises(ValueError):
-            script_to_story(" \n  ")
+            generate_explainer_story("   ")
 
 
 if __name__ == "__main__":

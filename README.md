@@ -1,46 +1,40 @@
-#!/usr/bin/env python3
-"""Render a narrated explainer from either a script file or a plain topic prompt."""
+# YT_channel: script-to-video animation engine
 
-from __future__ import annotations
+Turn a plain-text script or a topic outline into a narrated 2D explainer. The renderer uses procedural illustrations, animated diagrams, a presenter, captions, chapter cards, scene transitions, and configurable visual treatments. It uses Edge TTS for speech and FFmpeg for video; install FFmpeg separately and ensure it is available on `PATH`.
 
-import argparse
-import json
-from pathlib import Path
+## Quick start
 
-from kinetic_renderer import render_story
-from script_to_story import generate_explainer_story, script_file_to_story
+```bash
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python script_to_video.py --script my_script.txt --output output/my_video.mp4
+```
 
+Separate script sections with blank lines. Without blank lines, sentences are grouped into scenes. Structured JSON storyboards remain supported.
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Make a polished short-form explainer video from a script or prompt")
-    parser.add_argument("--script", help="Path to a .txt or .json story file")
-    parser.add_argument("--topic", help="One-line topic prompt to auto-build a polished explainer story")
-    parser.add_argument("--output", default="output/explainer.mp4", help="Output MP4 path")
-    parser.add_argument("--voice", default="en-US-GuyNeural", help="Edge TTS voice")
-    parser.add_argument("--title", help="Optional title override")
-    parser.add_argument("--sentences-per-scene", type=int, default=3, help="Sentence grouping for plain text scripts")
-    parser.add_argument("--storyboard", help="Optional path to save the generated storyboard JSON")
-    args = parser.parse_args()
+## Studio options
 
-    if args.topic:
-        story = generate_explainer_story(args.topic, title=args.title, voice=args.voice)
-    elif args.script:
-        story = script_file_to_story(
-            args.script,
-            title=args.title or Path(args.script).stem.replace("_", " ").title(),
-            voice=args.voice,
-            max_sentences=args.sentences_per_scene,
-        )
-    else:
-        raise SystemExit("Provide either --script or --topic.")
+```bash
+python script_to_video.py \
+  --script my_script.txt \
+  --output output/my_video.mp4 \
+  --style cinematic \
+  --transition wipe \
+  --transition-seconds 0.6 \
+  --chapter-every 2 \
+  --storyboard output/storyboard.json
+```
 
-    if args.storyboard:
-        Path(args.storyboard).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.storyboard).write_text(json.dumps(story, ensure_ascii=False, indent=2), encoding="utf-8")
+Styles: `cinematic`, `editorial`, `neon`, `paper`, `playful`. Transitions: `fade`, `wipe`, `zoom`, `cut`. Explicit `chapter` labels in a JSON scene are respected; otherwise a chapter is started every two scenes by default. Chapter boundaries and render details are saved to `output/render_report.json`.
 
-    report = render_story(story, args.output)
-    print(json.dumps(report, indent=2))
+## Topic outline mode
 
+```bash
+python script_to_video.py --topic "How do solar panels work?" --output output/solar.mp4
+```
 
-if __name__ == "__main__":
-    main()
+Topic mode generates a structured research outline with hook, definition, mechanism, comparison, evidence, and takeaway scenes. It intentionally inserts prompts for research rather than inventing facts or presenting generic claims as factual narration. Review and replace those prompts with sourced narration before publishing. Use `--storyboard` to save and edit the outline.
+
+## Narration and scope
+
+Narration is synthesized with the selected Edge TTS voice (`--voice en-US-AriaNeural`). Visual timing follows generated speech, with a configurable reading beat between scenes. This is a procedural 2D illustration system: visual style selection and icon drawing are local heuristics, not AI-generated images or a full 3D/rigged-character package.

@@ -79,7 +79,9 @@ def main():
     args=ap.parse_args()
     manifest=load_manifest()
     out=Path(args.output); out.parent.mkdir(parents=True,exist_ok=True)
-    frame_dir=Path(args.frames_dir); frame_dir.mkdir(parents=True,exist_ok=True)\n    for stale in frame_dir.glob("frame_*.png"): stale.unlink()
+    frame_dir=Path(args.frames_dir); frame_dir.mkdir(parents=True,exist_ok=True)
+    for stale in frame_dir.glob("frame_*.png"):
+        stale.unlink()
     # Validate all action exports before rendering any output.
     clips={name:action_frames(name) for name,_,_ in ACTIONS}
     total=round(sum(duration for _,duration,_ in ACTIONS)*FPS)

@@ -26,16 +26,16 @@ from PIL import Image, ImageDraw
 W, H, FPS = 1280, 720, 30
 ROOT = Path("assets/rigby2d/hero")
 ACTIONS = [
-    ("front_intro", 1.2, "FRONT INTRO"),
-    ("turn_threequarter", 0.8, "THREE-QUARTER TURN"),
-    ("turn_profile", 0.8, "SIDE PROFILE"),
-    ("walk", 2.0, "FAST WALK"),
-    ("stop_momentum", 0.7, "STOP / FOLLOW-THROUGH"),
-    ("look_back", 0.8, "LOOK BEHIND"),
-    ("run", 1.5, "RUN"),
-    ("jump", 0.8, "JUMP"),
-    ("land", 0.8, "LAND / RECOVER"),
-    ("front_expression", 1.0, "FRONT EXPRESSION"),
+    ("front_intro", 1.4, "FRONT INTRO"),
+    ("turn_threequarter", 1.0, "THREE-QUARTER TURN"),
+    ("turn_profile", 1.0, "SIDE PROFILE"),
+    ("walk", 2.2, "FAST WALK"),
+    ("stop_momentum", 0.8, "STOP / FOLLOW-THROUGH"),
+    ("look_back", 0.9, "LOOK BEHIND"),
+    ("run", 1.8, "RUN"),
+    ("jump", 1.0, "JUMP"),
+    ("land", 0.9, "LAND / RECOVER"),
+    ("front_expression", 1.2, "FRONT EXPRESSION"),
 ]
 
 def load_manifest():
@@ -43,8 +43,8 @@ def load_manifest():
     if not p.exists():
         raise SystemExit(f"Missing {p}. Follow docs/RIGBY2D_PIPELINE.md to export the rig.")
     data = json.loads(p.read_text())
-    if data.get("source") != "Rigby2D" or not data.get("character_name"):
-        raise SystemExit("manifest.json must identify source=Rigby2D and character_name.")
+    if data.get("source") not in ("Rigby2D", "Original SVG articulated character rig") or not data.get("character_name"):
+        raise SystemExit("manifest.json must identify a supported character source and character_name.")
     return data
 
 def action_frames(name):
@@ -79,7 +79,7 @@ def main():
     args=ap.parse_args()
     manifest=load_manifest()
     out=Path(args.output); out.parent.mkdir(parents=True,exist_ok=True)
-    frame_dir=Path(args.frames_dir); frame_dir.mkdir(parents=True,exist_ok=True)
+    frame_dir=Path(args.frames_dir); frame_dir.mkdir(parents=True,exist_ok=True)\n    for stale in frame_dir.glob("frame_*.png"): stale.unlink()
     # Validate all action exports before rendering any output.
     clips={name:action_frames(name) for name,_,_ in ACTIONS}
     total=round(sum(duration for _,duration,_ in ACTIONS)*FPS)
@@ -115,7 +115,7 @@ def main():
          "-c:v","libx264","-pix_fmt","yuv420p","-preset","medium","-crf","17",
          "-movflags","+faststart",str(out)]
     subprocess.run(cmd,check=True)
-    report={"character":manifest["character_name"],"source":"Rigby2D",
+    report={"character":manifest["character_name"],"source":manifest["source"],
             "fps":FPS,"frames":index,"duration_seconds":round(index/FPS,3),
             "resolution":f"{W}x{H}","actions":[{"name":n,"frames":len(clips[n])} for n,_,_ in ACTIONS],
             "output":str(out)}

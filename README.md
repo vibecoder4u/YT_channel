@@ -1,43 +1,46 @@
-# Illustrated Stickman Educational Video Engine
+#!/usr/bin/env python3
+"""Render a narrated explainer from either a script file or a plain topic prompt."""
 
-A script-driven 2D educational renderer. It creates original stickman presenters, animated diagrams, timelines, process flows, comparison panels, and captions—without stock footage or manually supplied scene images.
+from __future__ import annotations
 
-## Long-form improvements
-- **Narration-driven scene timing:** each scene length is measured from its generated voiceover, not a fixed timer.
-- **Synchronized transitions:** a matching audio reading beat is inserted after each scene, preventing cumulative visual/audio drift.
-- **Continuous motion:** presenter breathing, blinking and changing gestures; highlighted flow steps; animated timeline markers; staggered chart-bar reveals.
-- **Educational visual vocabulary:** process flows, networks, cycles, timelines, comparisons, concept panels, and simple data charts.
-- **Render QA:** automated tests check story structure and verify that frames change during a long scene. The Actions workflow checks H.264 video, AAC audio, and a minimum 4.5-minute output.
+import argparse
+import json
+from pathlib import Path
 
-## Five-minute demo
-The included `demo/story_5min.json` is a 17-scene educational explainer, 17-scene, 635-word explainer written for approximately five minutes of narration.
+from kinetic_renderer import render_story
+from script_to_story import generate_explainer_story, script_file_to_story
 
-### GitHub Actions render
-1. Open the repository's **Actions** tab.
-2. Select **Render Educational Stickman Video**.
-3. Click **Run workflow**.
-4. Keep the default script `demo/story_5min.json` and output name `educational-5min`.
-5. When the run completes, download the artifact named `educational-5min`. It contains the MP4 and QA reports.
 
-Workflow: https://github.com/vibecoder4u/YT_channel/actions/workflows/render.yml
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Make a polished short-form explainer video from a script or prompt")
+    parser.add_argument("--script", help="Path to a .txt or .json story file")
+    parser.add_argument("--topic", help="One-line topic prompt to auto-build a polished explainer story")
+    parser.add_argument("--output", default="output/explainer.mp4", help="Output MP4 path")
+    parser.add_argument("--voice", default="en-US-GuyNeural", help="Edge TTS voice")
+    parser.add_argument("--title", help="Optional title override")
+    parser.add_argument("--sentences-per-scene", type=int, default=3, help="Sentence grouping for plain text scripts")
+    parser.add_argument("--storyboard", help="Optional path to save the generated storyboard JSON")
+    args = parser.parse_args()
 
-## Run locally
-Requires Python 3.10+, FFmpeg, and network access for Edge TTS voice generation.
+    if args.topic:
+        story = generate_explainer_story(args.topic, title=args.title, voice=args.voice)
+    elif args.script:
+        story = script_file_to_story(
+            args.script,
+            title=args.title or Path(args.script).stem.replace("_", " ").title(),
+            voice=args.voice,
+            max_sentences=args.sentences_per_scene,
+        )
+    else:
+        raise SystemExit("Provide either --script or --topic.")
 
-```bash
-pip install -r requirements.txt
-python -m unittest discover -s tests -v
-python engine.py --script demo/story_5min.json --output output/educational-5min.mp4
-```
+    if args.storyboard:
+        Path(args.storyboard).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.storyboard).write_text(json.dumps(story, ensure_ascii=False, indent=2), encoding="utf-8")
 
-## Script fields
-Each scene supports:
-- `narration`: spoken explanation; rendered duration follows the generated audio.
-- `heading`, `caption`, `takeaway`: on-screen teaching hierarchy.
-- `visual`: `concept`, `flow`, `process`, `network`, `timeline`, `compare`, `cycle`, or `stat`.
-- `items` and optional `values`: labels/data for the selected visual.
-- `action`: presenter pose such as `explain`, `point`, `think`, `walk`, or `celebrate`.
-- `accent`: scene color.
+    report = render_story(story, args.output)
+    print(json.dumps(report, indent=2))
 
-## Honest scope
-This is a procedural 2D illustrated foundation, not a finished studio-grade character-animation package. Motion is code-driven and intentionally lightweight; it is not skeletal character rigging or phoneme-level lip-sync. The workflow has been configured with automated checks, but a successful GitHub-hosted render is only confirmed after an Actions run completes.
+
+if __name__ == "__main__":
+    main()

@@ -14,7 +14,9 @@ class StudioStoryTests(unittest.TestCase):
         story = generate_explainer_story("How do solar panels work?")
         self.assertEqual(len(story["scenes"]), 6)
         narration = " ".join(scene["narration"] for scene in story["scenes"])
-        self.assertIn("sourced statistic", narration)
+        # The outline advises checking the source, without inventing a statistic.
+        self.assertIn("trustworthy statistic", narration)
+        self.assertIn("checking its source", narration)
         self.assertEqual(story["scenes"][2]["visual"], "flow")
         self.assertEqual(story["scenes"][3]["visual"], "compare")
 

@@ -76,11 +76,11 @@ jobs:
       - name: Validate render options
         id: options
         env:
-          INPUT_SCRIPT: ${{ inputs.script }}
-          INPUT_NAME: ${{ inputs.output_name }}
-          INPUT_STYLE: ${{ inputs.style }}
-          INPUT_TRANSITION: ${{ inputs.transition }}
-          INPUT_CHAPTERS: ${{ inputs.chapter_every }}
+          INPUT_SCRIPT: ${{ inputs.script || 'demo/studio_sample.txt' }}
+          INPUT_NAME: ${{ inputs.output_name || 'studio-preview' }}
+          INPUT_STYLE: ${{ inputs.style || 'cinematic' }}
+          INPUT_TRANSITION: ${{ inputs.transition || 'fade' }}
+          INPUT_CHAPTERS: ${{ inputs.chapter_every || '2' }}
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import os, re

@@ -1,0 +1,11 @@
+# Demo script: Why do apps feel instant?
+
+Have you ever tapped a button and watched an app respond before you even thought about it? That feeling is not magic. It is the result of carefully reducing the time between your action and the response.
+
+First, the app tries to do the small, obvious work on your device. It can show a response immediately while larger tasks continue in the background. Think of it like a restaurant bringing water while your meal is still being prepared.
+
+When the app needs information from a server, it sends a request across the network. The server processes that request and sends back only what the app needs. Good systems prepare common data ahead of time, so the same information does not need to be fetched from scratch every time.
+
+Compare that with a slow experience: tap, wait, stare at a blank screen. A faster design gives instant feedback, shows progress, and lets you keep moving. Even when the full task takes time, the experience feels clearer because the app tells you what is happening.
+
+The key idea is simple: speed is not just how quickly a computer works. It is also how quickly people understand that their action has been noticed. Reduce the wait, show progress, and make the next step obvious—and an app feels much more responsive.

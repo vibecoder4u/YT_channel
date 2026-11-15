@@ -1,6 +1,6 @@
 # Rigby2D character pipeline
 
-This is the character-animation lane for the video engine. Rigby2D is used to author and render the actual character; this repository assembles its transparent PNG sequences into a timed MP4. Blender remains an optional separate lane. The old PIL renderer remains a fallback for existing projects, but it is **not** accepted as a substitute in this character quality test.
+This is the character-animation lane for the video engine. The workflow now generates an original, layered SVG character rig and ten articulated action sequences in CI, renders transparent PNG frames, then assembles them into a timed MP4. Rigby2D exports remain supported as an alternate input. Blender remains an optional separate lane. The old PIL renderer remains a fallback for existing projects, but it is **not** accepted as a substitute in this character quality test.
 
 ## 1. Create the character in Rigby2D
 
@@ -49,7 +49,7 @@ pip install Pillow
 python rigby2d_pipeline.py --output output/rigby2d-character-test.mp4
 ```
 
-FFmpeg must be installed and on PATH. The compositor makes a 12.4-second 1280x720 30-FPS reel with title slates and motion-aware staging. It does not invent missing character animation.
+FFmpeg must be installed and on PATH. The generator produces a 12.2-second 1280x720 30-FPS action reel with distinct front, three-quarter and profile facial construction, animated limbs, walk/run cycles, stop follow-through, jump and landing poses. It is a procedural 2D vector rig—not a hand-drawn frame-by-frame animation or a production-grade commercial rig. Inspect the MP4 for visual quality before using it.
 
 ## 4. GitHub Actions
 
@@ -57,7 +57,7 @@ Run **Rigby2D Character Pipeline** with `workflow_dispatch`, or push changes to 
 
 ## 5. Quality gate
 
-The workflow fails if any action folder is missing, has fewer than 8 frames, or contains empty frames. Human review must confirm:
+The workflow generates and validates all ten action folders in CI, then fails if any action folder is missing, has fewer than 8 frames, or contains empty frames. Human review must confirm:
 - recognisable designed character, consistent across views;
 - genuine side-profile facial anatomy;
 - alternating walk/run foot contacts and no foot sliding;

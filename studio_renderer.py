@@ -148,8 +148,10 @@ def render_story(
     voice = story.get("voice", "en-US-GuyNeural")
     rate = story.get("rate", "+0%")
 
+    print(f"[studio] Preparing narration for {len(scenes)} scenes", flush=True)
     for index, scene in enumerate(scenes):
         audio = audio_dir / f"scene_{index:04d}.mp3"
+        print(f"[studio] TTS scene {index + 1}/{len(scenes)}: {scene.get('heading', 'Untitled')[:64]}", flush=True)
         boundaries = asyncio.run(engine.synthesize(scene["narration"], voice, audio, rate))
         duration = engine.probe_duration(audio)
         durations.append(duration)
@@ -158,7 +160,10 @@ def render_story(
         padded = audio_dir / f"padded_{index:04d}.mp3"
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(audio), "-af", f"apad=pad_dur={beat}", "-c:a", "libmp3lame", str(padded)], check=True)
         audio_paths.append(padded)
+        print(f"[studio] Audio ready {index + 1}/{len(scenes)} ({duration:.1f}s)", flush=True)
 
+    total_frames = sum(max(1, math.ceil((duration + beat) * fps)) for duration in durations)
+    print(f"[studio] Starting frame render: {total_frames} frames at {fps} fps across {len(scenes)} scenes", flush=True)
     raw = work / "studio_video.mp4"
     command = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pixel_format", "rgb24", "-video_size", f"{W}x{H}", "-framerate", str(fps), "-i", "-", "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p", str(raw)]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
@@ -172,7 +177,11 @@ def render_story(
             transition_frames = min(count // 3, max(0, round(transition_seconds * fps))) if scene_index and transition != "cut" else 0
             if scene.get("_chapter_start"):
                 chapters.append({"title": scene.get("chapter", scene.get("heading", "Chapter")), "start_seconds": round(elapsed, 2), "scene": scene_index + 1})
+            print(f"[studio] Rendering scene {scene_index + 1}/{len(scenes)} ({count} frames)", flush=True)
+            progress_interval = max(1, count // 4)
             for frame_index in range(count):
+                if frame_index % progress_interval == 0:
+                    print(f"[studio] Scene {scene_index + 1}/{len(scenes)}: frame {frame_index + 1}/{count}", flush=True)
                 rendered = make_kinetic_frame(scene, frame_index, count, scene_index+1, len(scenes), story.get("title", "A Story, Illustrated"))
                 rendered = apply_style(rendered, style)
                 local_time = frame_index / fps
@@ -189,6 +198,7 @@ def render_story(
         process.stdin.close()
     if process.wait() != 0:
         raise RuntimeError("FFmpeg failed while encoding the studio animation")
+    print("[studio] Video frames encoded; assembling narration audio", flush=True)
 
     concat = work / "audio.txt"
     concat.write_text("".join(f"file '{path.resolve()}'\n" for path in audio_paths), encoding="utf-8")

@@ -23,15 +23,6 @@ jobs:
             echo "run_id must contain digits only"
             exit 1
           fi
-      - name: Run cleanup every five days
-        if: github.event_name == 'schedule'
-        run: |
-          day_number=$(( $(date -u +%s) / 86400 ))
-          if (( day_number % 5 != 0 )); then
-            echo "Not a five-day cleanup day; skipping."
-            exit 0
-          fi
-          echo "Five-day cleanup day."
       - name: Delete artifacts for the selected run or all runs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -40,6 +31,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            day_number=$(( $(date -u +%s) / 86400 ))
+            if (( day_number % 5 != 0 )); then
+              echo "Not a five-day cleanup day; skipping."
+              exit 0
+            fi
+          fi
           base="https://api.github.com/repos/$GH_REPOSITORY"
           headers=(-H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json")
           delete_artifacts() {

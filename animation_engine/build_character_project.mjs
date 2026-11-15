@@ -66,10 +66,13 @@ console.log('PSD: ' + children.length + ' transparent parts, ' + manifest.canvas
 
 cli(['import-psd', PSD, '--out', RAW, '--force', '--json'], 'Rigby2D PSD import');
 cli(['autorig', RAW, '--out', RIG, '--meshes', 'deforming', '--force', '--json'], 'Rigby2D AutoRig');
+const prep = spawnSync('python', ['animation_engine/prepare_rig.py', RIG], { cwd: ROOT, encoding: 'utf8' });
+if (prep.status !== 0) throw new Error('Rig preparation failed: ' + prep.stderr + prep.stdout);
+console.log(prep.stdout.trim());
 
 cli(['call', 'set_workspace', '--path', RIG, '--workspace', 'film', '--json'], 'Film workspace setup');
 cli(['call', 'set_output', '--path', RIG, '--fps', '30', '--width', '1280', '--height', '720',
-  '--background', '#152638', '--framing', 'auto', '--json'], 'Film output setup');
+  '--background', 'transparent', '--framing', 'auto', '--json'], 'Film output setup');
 
 const rigReport = parseJson(cli(['call', 'describe_rig', '--path', RIG, '--json'], 'Describe rig'), 'describe_rig');
 await fs.writeFile(path.join(BUILD, 'rig-report.json'), JSON.stringify(rigReport, null, 2));
@@ -141,13 +144,13 @@ switchViews(2.2, 'profile');
 
 // Walk: the root advances steadily while IK foot targets remain planted in stance,
 // then lift and swing through to the next contact. Arms counter-swing and torso follows.
-const walkStart = 3.0, walkEnd = 5.2, walkPeriod = 0.82, walkStride = 43;
+const walkStart = 3.0, walkEnd = 5.2, walkPeriod = 0.78, walkStride = 66;
 for (const t of sampleTimes(walkStart, walkEnd, 3)) {
   const u = t - walkStart;
   const dx = u / walkPeriod * walkStride;
   const phaseL = (u / walkPeriod) % 1;
   const phaseR = (phaseL + 0.5) % 1;
-  const bounce = Math.abs(Math.sin(2 * Math.PI * u / walkPeriod)) * 5.5;
+  const bounce = Math.abs(Math.sin(2 * Math.PI * u / walkPeriod)) * 11;
   xy(root, t, dx, bounce);
   for (const [side, phase] of [['l',phaseL],['r',phaseR]]) {
     const cycle = Math.floor(u / walkPeriod + (side === 'r' ? 0.5 : 0));
@@ -156,23 +159,20 @@ for (const t of sampleTimes(walkStart, walkEnd, 3)) {
     if (phase >= 0.62) {
       const swing = (phase - 0.62) / 0.38;
       targetX += walkStride * ease01(swing);
-      targetY = 47 * Math.sin(Math.PI * swing);
+      targetY = 88 * Math.sin(Math.PI * swing);
     }
     if (hasFootIK) {
       const base = footBase[side];
       xy('ik_foot_' + side, t, targetX - dx, targetY);
     }
     const s = Math.sin(phase * 2 * Math.PI);
-    const knee = phase >= 0.62 ? 30 * Math.sin(Math.PI * (phase - 0.62) / 0.38) : 0;
-    rot('thigh_' + side, t, 21 * s);
-    rot('shin_' + side, t, knee);
-    rot('foot_' + side, t, -10 * s - knee * 0.35);
-    rot('upperarm_' + side, t, -18 * s);
-    rot('forearm_' + side, t, 12 + 12 * Math.max(0, -s));
+    // Arm IK is intentionally removed in prepare_rig.py so shoulder/elbow arcs are free to swing.
+    rot('upperarm_' + side, t, -34 * s);
+    rot('forearm_' + side, t, 18 + 18 * Math.max(0, -s));
   }
-  rot('hip', t, -2.7 * Math.sin(2 * Math.PI * u / walkPeriod));
-  rot('chest', t, 2.1 * Math.sin(2 * Math.PI * u / walkPeriod + 0.35));
-  rot('head', t, 1.2 * Math.sin(2 * Math.PI * u / walkPeriod + 0.6));
+  rot('hip', t, -4.5 * Math.sin(2 * Math.PI * u / walkPeriod));
+  rot('chest', t, 3.8 * Math.sin(2 * Math.PI * u / walkPeriod + 0.35));
+  rot('head', t, 2.0 * Math.sin(2 * Math.PI * u / walkPeriod + 0.6));
 }
 
 // Stop with anticipation, heel plant and upper-body follow-through.
@@ -196,14 +196,14 @@ for (const [t,h,n,c] of [[5.95,0,0,0],[6.15,-8,-4,1],[6.45,-18,-7,2],[6.8,-13,-5
 switchViews(7.0, 'profile');
 
 // Run: shorter flight phases, longer stride, stronger arm drive and higher vertical bounce.
-const runStart = 7.0, runEnd = 8.85, runPeriod = 0.52, runStride = 48;
+const runStart = 7.0, runEnd = 8.85, runPeriod = 0.50, runStride = 78;
 const xAtRun = walkDistance + 15;
 for (const t of sampleTimes(runStart, runEnd, 2)) {
   const u = t - runStart;
   const dx = xAtRun + u / runPeriod * runStride;
   const pL = (u / runPeriod) % 1;
   const pR = (pL + 0.5) % 1;
-  const bounce = 8 + 8 * Math.max(0, Math.sin(4*Math.PI*u/runPeriod));
+  const bounce = 14 + 18 * Math.max(0, Math.sin(4*Math.PI*u/runPeriod));
   xy(root, t, dx, bounce);
   for (const [side, phase] of [['l',pL],['r',pR]]) {
     const cycle = Math.floor(u / runPeriod + (side === 'r' ? 0.5 : 0));
@@ -212,19 +212,16 @@ for (const t of sampleTimes(runStart, runEnd, 2)) {
     if (phase >= 0.48) {
       const swing = (phase - 0.48) / 0.52;
       targetX += runStride * ease01(swing);
-      targetY = 76 * Math.sin(Math.PI*swing);
+      targetY = 138 * Math.sin(Math.PI*swing);
     }
     if (hasFootIK) xy('ik_foot_' + side, t, targetX - u/runPeriod*runStride, targetY);
     const s = Math.sin(phase * 2 * Math.PI);
-    const knee = phase >= 0.48 ? 50*Math.sin(Math.PI*(phase-0.48)/0.52) : 5;
-    rot('thigh_' + side,t,33*s);
-    rot('shin_' + side,t,knee);
-    rot('foot_' + side,t,-16*s-knee*0.3);
-    rot('upperarm_' + side,t,-31*s);
-    rot('forearm_' + side,t,25+19*Math.max(0,-s));
+    // Foot targets define the planted and flight arcs; limb rotations are solved by leg IK.
+    rot('upperarm_' + side,t,-54*s);
+    rot('forearm_' + side,t,34+24*Math.max(0,-s));
   }
-  rot('hip',t,-4*Math.sin(2*Math.PI*u/runPeriod));
-  rot('chest',t,6+4*Math.sin(2*Math.PI*u/runPeriod+0.4));
+  rot('hip',t,-6*Math.sin(2*Math.PI*u/runPeriod));
+  rot('chest',t,9+5*Math.sin(2*Math.PI*u/runPeriod+0.4));
   rot('head',t,-2+2*Math.sin(2*Math.PI*u/runPeriod));
 }
 const runDistance = (runEnd-runStart)/runPeriod*runStride;
@@ -234,11 +231,11 @@ const xAtJump = xAtRun + runDistance;
 for (const [t,x,y,hip,chest,arm,thigh,shin] of [
   [8.85,xAtJump,0,12,-7,-12,25,28],
   [9.0,xAtJump+5,-24,20,-9,-40,35,45],
-  [9.18,xAtJump+10,68,-5,8,-72,-16,35],
-  [9.38,xAtJump+14,132,-8,10,-78,-23,52],
-  [9.56,xAtJump+18,138,-3,7,-65,-18,44],
-  [9.74,xAtJump+22,95,4,3,-34,12,28],
-  [9.9,xAtJump+24,22,15,-9,8,28,35],
+  [9.18,xAtJump+10,125,-5,8,-100,-16,35],
+  [9.38,xAtJump+14,245,-8,10,-112,-23,52],
+  [9.56,xAtJump+18,258,-3,7,-96,-18,44],
+  [9.74,xAtJump+22,175,4,3,-58,12,28],
+  [9.9,xAtJump+24,52,15,-9,8,28,35],
   [10.02,xAtJump+25,-16,20,-11,10,18,46],
   [10.18,xAtJump+25,-6,8,-4,-5,8,18],
   [10.38,xAtJump+25,0,0,0,0,0,0],
@@ -247,16 +244,21 @@ for (const [t,x,y,hip,chest,arm,thigh,shin] of [
   rot('hip',t,hip); rot('chest',t,chest);
   rot('upperarm_l',t,arm); rot('upperarm_r',t,arm-8);
   rot('forearm_l',t,-18); rot('forearm_r',t,-12);
-  rot('thigh_l',t,thigh); rot('thigh_r',t,thigh-8);
-  rot('shin_l',t,shin); rot('shin_r',t,shin-10);
   rot('head',t,-3);
+  // Tuck both feet during flight, then extend them back under the hips for landing.
+  const tuck = Math.sin(Math.PI * Math.max(0, Math.min(1, (t-9.0)/0.95)));
+  if (hasFootIK) {
+    xy('ik_foot_l',t,-34*tuck,82*tuck);
+    xy('ik_foot_r',t, 34*tuck,82*tuck);
+  }
+  rot('hand_l',t,-10*tuck); rot('hand_r',t,10*tuck);
 }
 switchViews(10.38,'front');
 for (const [t,h,c] of [[10.38,0,0],[10.8,3,-1],[11.2,0,0],[11.6,-2,1],[12.2,0,0]]) {
   rot('head',t,h); rot('chest',t,c); rot('neck',t,0);
   rot('upperarm_l',t,0); rot('upperarm_r',t,0);
-  rot('thigh_l',t,0); rot('thigh_r',t,0);
-  rot('shin_l',t,0); rot('shin_r',t,0);
+  rot('forearm_l',t,0); rot('forearm_r',t,0);
+  rot('hand_l',t,0); rot('hand_r',t,0);
 }
 xy(root,10.38,xAtJump+25,0); xy(root,12.2,xAtJump+25,0);
 

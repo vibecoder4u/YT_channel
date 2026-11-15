@@ -10,6 +10,7 @@ FFmpeg, keeping generated art local and reproducible.
 from __future__ import annotations
 
 import asyncio
+from functools import lru_cache
 import math
 import subprocess
 from pathlib import Path
@@ -52,6 +53,7 @@ def _card(image: Image.Image, box, radius=22, fill=(255, 255, 255, 245), shadow=
     image.alpha_composite(layer)
 
 
+@lru_cache(maxsize=16)
 def _gradient(seed: int) -> Image.Image:
     top, bottom, _ = PALETTES[seed % len(PALETTES)]
     image = Image.new("RGB", (W, H))
@@ -67,7 +69,7 @@ def _gradient(seed: int) -> Image.Image:
 
 
 def _background(seed: int, t: float) -> Image.Image:
-    image = _gradient(seed)
+    image = _gradient(seed).copy()
     d = ImageDraw.Draw(image, "RGBA")
     # Slow parallax orbs, atmospheric horizon and distant rolling hills.
     for i in range(9):

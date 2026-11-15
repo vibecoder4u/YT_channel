@@ -99,8 +99,11 @@ jobs:
           from pathlib import Path
           rig = json.loads(Path("build/rig-report.json").read_text())
           anim = json.loads(Path("build/animation-report.json").read_text())
+          controls = json.loads(Path("build/rig-controls-report.json").read_text())
           probe = json.loads(Path("build/video-probe.json").read_text())
           names = {b["name"] for b in rig.get("bones", [])}
+          assert sorted(controls.get("removed_arm_ik", [])) == ["ik_hand_l", "ik_hand_r"], controls
+          assert sorted(controls.get("remaining_ik", [])) == ["ik_foot_l", "ik_foot_r"], controls
           required = {"hip", "chest", "head", "thigh_l", "shin_l", "thigh_r", "shin_r", "ik_foot_l", "ik_foot_r"}
           missing = sorted(required - names)
           if missing:
@@ -136,6 +139,7 @@ jobs:
             build/maya-character.rigby
             build/maya-rigged-character.psd
             build/rig-report.json
+            build/rig-controls-report.json
             build/animation-report.json
             build/rig-validation.json
             build/video-probe.json

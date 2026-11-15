@@ -1,0 +1,160 @@
+name: Render Studio Explainer
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Repository-relative .txt script or .json storyboard
+        required: true
+        default: demo/studio_sample.txt
+        type: string
+      output_name:
+        description: Artifact/video name
+        required: true
+        default: studio-preview
+        type: string
+      style:
+        description: Visual treatment
+        required: true
+        default: cinematic
+        type: choice
+        options: [cinematic, editorial, neon, paper, playful]
+      transition:
+        description: Scene transition
+        required: true
+        default: fade
+        type: choice
+        options: [fade, wipe, zoom, cut]
+      chapter_every:
+        description: Start a chapter every N scenes when chapters are not specified
+        required: true
+        default: "2"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  render-studio-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate render options
+        id: options
+        env:
+          INPUT_SCRIPT: ${{ inputs.script }}
+          INPUT_NAME: ${{ inputs.output_name }}
+          INPUT_STYLE: ${{ inputs.style }}
+          INPUT_TRANSITION: ${{ inputs.transition }}
+          INPUT_CHAPTERS: ${{ inputs.chapter_every }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os, re
+          from pathlib import Path
+
+          script = Path(os.environ["INPUT_SCRIPT"])
+          if script.is_absolute() or ".." in script.parts or not script.is_file():
+              raise SystemExit(f"Script must be an existing repository-relative file: {script}")
+          if script.suffix.lower() not in {".txt", ".json"}:
+              raise SystemExit("Script must be a .txt file or a .json storyboard")
+
+          name = os.environ["INPUT_NAME"]
+          if not re.fullmatch(r"[A-Za-z0-9_-]{1,60}", name):
+              raise SystemExit("output_name may contain only letters, numbers, dash and underscore")
+
+          style = os.environ["INPUT_STYLE"]
+          if style not in {"cinematic", "editorial", "neon", "paper", "playful"}:
+              raise SystemExit("Unsupported visual style")
+          transition = os.environ["INPUT_TRANSITION"]
+          if transition not in {"fade", "wipe", "zoom", "cut"}:
+              raise SystemExit("Unsupported transition")
+          try:
+              chapters = int(os.environ["INPUT_CHAPTERS"])
+          except ValueError:
+              raise SystemExit("chapter_every must be a positive integer")
+          if chapters < 1:
+              raise SystemExit("chapter_every must be a positive integer")
+
+          for key, value in {
+              "script": str(script), "name": name, "style": style,
+              "transition": transition, "chapters": chapters
+          }.items():
+              print(f"{key}={value}")
+          PY
+
+      - name: Render studio explainer
+        env:
+          SCRIPT_PATH: ${{ steps.options.outputs.script }}
+          OUTPUT_NAME: ${{ steps.options.outputs.name }}
+          STYLE: ${{ steps.options.outputs.style }}
+          TRANSITION: ${{ steps.options.outputs.transition }}
+          CHAPTER_EVERY: ${{ steps.options.outputs.chapters }}
+        run: |
+          mkdir -p output
+          python script_to_video.py \
+            --script "$SCRIPT_PATH" \
+            --output "output/${OUTPUT_NAME}.mp4" \
+            --style "$STYLE" \
+            --transition "$TRANSITION" \
+            --chapter-every "$CHAPTER_EVERY" \
+            --storyboard "output/${OUTPUT_NAME}_storyboard.json"
+
+      - name: Verify generated video
+        env:
+          OUTPUT_NAME: ${{ steps.options.outputs.name }}
+        run: |
+          ffprobe -v error \
+            -show_entries stream=codec_type,codec_name,width,height,r_frame_rate \
+            -show_entries format=duration \
+            -of json "output/${OUTPUT_NAME}.mp4" > output/ffprobe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          probe = json.loads(Path("output/ffprobe.json").read_text())
+          streams = probe.get("streams", [])
+          video = next((s for s in streams if s.get("codec_type") == "video"), None)
+          audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
+          assert video and video.get("codec_name") == "h264", streams
+          assert audio and audio.get("codec_name") == "aac", streams
+          assert (video.get("width"), video.get("height")) == (1280, 720), video
+          report = json.loads(Path("output/render_report.json").read_text())
+          assert report.get("renderer") == "studio-2d", report
+          assert report.get("video_seconds", 0) > 0, report
+          assert report.get("scenes", 0) > 0, report
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload video, storyboard and QA report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.options.outputs.name }}
+          path: |
+            output/${{ steps.options.outputs.name }}.mp4
+            output/${{ steps.options.outputs.name }}_storyboard.json
+            output/render_report.json
+            output/ffprobe.json
+          if-no-files-found: error
+          retention-days: 7

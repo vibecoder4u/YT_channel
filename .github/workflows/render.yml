@@ -68,4 +68,4 @@ jobs:
             output/render_report.json
             output/ffprobe.json
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1

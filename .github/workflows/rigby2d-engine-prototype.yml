@@ -79,7 +79,7 @@ jobs:
             --engine chromium \
             --allow-software \
             --fps 30 --width 1280 --height 720 \
-            --background "#152638" \
+            --background none \
             --quality high --force --json
           test "$(find build/rigby-frames -maxdepth 1 -name '*.png' | wc -l)" -ge 300
 

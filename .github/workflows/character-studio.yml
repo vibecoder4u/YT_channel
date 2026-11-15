@@ -54,4 +54,4 @@ jobs:
           name: character-studio-model-sheet
           path: output/character_studio/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1

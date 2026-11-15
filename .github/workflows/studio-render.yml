@@ -1,6 +1,18 @@
 name: Render Studio Explainer
 
 on:
+  push:
+    branches: [feature/script-to-animation]
+    paths:
+      - '.github/workflows/studio-render.yml'
+      - 'script_to_video.py'
+      - 'studio_renderer.py'
+      - 'script_to_story.py'
+      - 'kinetic_renderer.py'
+      - 'engine.py'
+      - 'demo/studio_sample.txt'
+      - 'requirements.txt'
+      - 'tests/**'
   workflow_dispatch:
     inputs:
       script:

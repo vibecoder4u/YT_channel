@@ -1,0 +1,61 @@
+name: Hybrid Blender Plus Fallback Animation Test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blender/**'
+      - 'hybrid_render.py'
+      - '.github/workflows/hybrid-animation-test.yml'
+      - 'human_render_cinematic.py'
+      - 'demo/rescue_at_the_river_55s.json'
+      - 'engine.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg blender
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Check Blender and fallback
+        run: |
+          blender --version
+          python -m py_compile hybrid_render.py human_render_cinematic.py engine.py
+      - name: Render Blender-first with automatic fallback
+        run: |
+          python hybrid_render.py --script demo/rescue_at_the_river_55s.json --output output/hybrid-rescue.mp4 2>&1 | tee output-render.log
+      - name: Validate produced video
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/hybrid-rescue.mp4 > output/ffprobe.json
+          python - <<'PY'
+          import json, os
+          d=json.load(open('output/ffprobe.json'))
+          v=next(x for x in d['streams'] if x['codec_type']=='video')
+          dur=float(d['format']['duration'])
+          assert dur >= 18, dur
+          assert v['width']==1280 and v['height']==720, v
+          print('VIDEO PASS:',round(dur,2),'seconds',v)
+          log=open('output-render.log').read()
+          assert 'ENGINE_SELECTED=' in log, 'No renderer selection recorded'
+          print([x for x in log.splitlines() if 'ENGINE_SELECTED=' in x][-1])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hybrid-blender-fallback-rescue-test
+          path: |
+            output/hybrid-rescue.mp4
+            output/ffprobe.json
+            output-render.log
+          if-no-files-found: error
+          retention-days: 14

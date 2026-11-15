@@ -243,12 +243,12 @@ def render_frame(t):
     return im
 
 def main():
+    global FPS,DURATION
     ap=argparse.ArgumentParser()
     ap.add_argument("--out",default="build/multi-character")
     ap.add_argument("--fps",type=int,default=FPS)
     ap.add_argument("--duration",type=float,default=DURATION)
     args=ap.parse_args()
-    global FPS,DURATION
     FPS=args.fps; DURATION=args.duration
     out=Path(args.out); frames=out/"frames"; frames.mkdir(parents=True,exist_ok=True)
     count=round(FPS*DURATION)
